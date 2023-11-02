@@ -1,0 +1,12 @@
+XX
+
+Longitud de la carretera = 5
+Posicion del coche 3
+
+Solucion:
+
+|     |
+|   A |
+
+
+Leyenda: C -> coche; S -> sorpresa; A -> coche (automovil)

@@ -8,11 +8,11 @@
 #include <ctime>
 
 //VARIABLES
-const int LONG_CARRETERA = 10,
+const int LONG_CARRETERA = 20,
 MAX_PASOS = 2,
 TIEMPO_PARADO = 2;
 
-const bool DEBUG = false;
+const bool DEBUG = true;
 
 const char CHAR_LINEA_HORIZONTAL = char(205),
 CHAR_ESQUINA_SUPERIOR_IZQUIERDA = char(201),
@@ -32,8 +32,6 @@ struct tCoche {
 	int pos;
 	int tiempoParado;
 };
-
-std::string respuesta = "."; //Almacena las respuestas que tiene que dar el usuario para que avance el programa
 
 
 //FUNCIONES
@@ -56,10 +54,13 @@ tTipoPosicion stringToEnum(std::string s) { //Transforma el string "s" en su cor
 
 }
 bool cargaCarretera(tCarretera carretera) {
-
+	
 	std::cout << "Introduzca el nombre del archivo de la carretera: ";
 	std::string nombreDelArchivo;
-	std::cin >> nombreDelArchivo; //Pide el nombre del archivo al usuario
+	std::cin >> nombreDelArchivo; // Pide el nombre del archivo al usuario 
+
+	char saltoDeLinea;
+	std::cin.get(saltoDeLinea); //Evita que un salto de línea se capte en la función "avanza"
 
 	std::ifstream entrada;
 	entrada.open(nombreDelArchivo);
@@ -135,7 +136,7 @@ bool esClavo(const tCarretera carretera, int posCoche) {
 	return carretera[posCoche] == CLAVO;
 }
 bool enCarretera(int n) {
-	return n >= 0 && n <= LONG_CARRETERA;
+	return n >= 0 && n < LONG_CARRETERA;
 }
 
 //Busca la posicion sorpresa más cercana. Si el modo DEBUG es "true" (modo depuración) entonces pregunta al usuario si quiere avanzar o retroceder a la sorpresa más cercana. Del contrario (modo normal), esto último es de manera aleatoria
@@ -157,20 +158,23 @@ int avanza(int posCoche) {
 
 	if (!DEBUG) {
 
-		//Si la respuesta es diferente de la tecla "Enter" se pregunta al usuario de nuevo
-		while (respuesta != "\n") {
-			std::cout << "Pulse la tecla " << "\"Enter\"" << " para continuar"; //¿HAY MEJOR FORMA DE HACER LO DEL "ENTER"? (PREGUNTAR A PITA)
-			if (respuesta == ".") std::cin.ignore();
-			std::cin.ignore();
-			respuesta = "\n";
+		char respuestaModoNormal;
+		
+		std::cout << "Pulse la tecla " << "\"Enter\"" << " para continuar";
+		std::cin.get(respuestaModoNormal); //Se capta el primer salto de línea ("Enter") después de imprimir la frase, no un salto de línea anterior
+		std::cout << '\n';
+		
+		while (respuestaModoNormal != '\n') {
+			std::cout << "Pulse la tecla " << "\"Enter\"" << " para continuar";
+			std::cin.get(respuestaModoNormal);
 			std::cout << '\n';
 		}
 		
-		respuesta = "";
-		
 		numPasos = 1 + rand() % MAX_PASOS; //Genera un número aleatorio entre 1 y MAX_PASOS, que es sumado luego a la posición del coche
 		posNuevaCoche = posCoche + numPasos;
-		std::cout << "El coche avanza " << numPasos << " pasos\n";
+
+		if (numPasos > 1) std::cout << "El coche avanza " << numPasos << " pasos\n";
+		else std::cout << "El coche avanza " << numPasos << " paso\n";
 
 		return posNuevaCoche;
 	}
@@ -179,11 +183,12 @@ int avanza(int posCoche) {
 		std::cin >> numPasos;
 		posNuevaCoche = posCoche + numPasos; 
 
-		if (!enCarretera(posNuevaCoche)) return 0;
+		if (posNuevaCoche < 0) return 0;
 		else return posNuevaCoche;
 	}
 }
 
+//Analiza el caso en el que la posición del coche es mayor o igual que la meta
 bool haLlegado(int posCoche) {
 	return posCoche >= LONG_CARRETERA;
 }
@@ -204,19 +209,22 @@ bool calculaPosicion(const tCarretera carretera, tCoche& coche) {
 			else incremento = -1;
 		}
 		else {
-			std::cout << "POSICION SORPRESA :) "  << char(168) << "Desea avanzar o retroceder hacia la posicion de la sorpresa mas cercana (A/R)? ";
-			std::cin >> respuesta;
+
+			int respuestaSorpresa;
+			std::cout << char(168) << "Desea avanzar o retroceder hacia la posicion de la sorpresa mas cercana (1/-1)? ";
+			std::cin >> respuestaSorpresa;
 			std::cout << '\n';
-			
-			//Si las respuestas son diferentes de "A" y "R" se pregunta al usuario de nuevo
-			while (respuesta != "A" && respuesta != "R") {
-				std::cout << char(168) << "Desea avanzar o retroceder hacia la posicion de la sorpresa mas cercana (A/R)? ";
-				std::cin >> respuesta;
+
+			//Si las respuestas son diferentes de "1" y "-1" se pregunta al usuario de nuevo
+			while (respuestaSorpresa != 1 && respuestaSorpresa != -1) {
+				std::cout << char(168) << "Desea avanzar o retroceder hacia la posicion de la sorpresa mas cercana (1/-1)? ";
+				std::cin >> respuestaSorpresa;
 				std::cout << '\n';
 			}
 
-			if (respuesta == "A") incremento = 1;
+			if (respuestaSorpresa == 1) incremento = 1;
 			else incremento = -1;
+
 		}
 
 		/*Como se indica que esta funcion tiene que devolver "true" solo si la posicion del coche es sorpresa, hace falta almacenar la posicion original del coche antes 
@@ -228,6 +236,7 @@ bool calculaPosicion(const tCarretera carretera, tCoche& coche) {
 	
 	return esSorpresa(carretera,posOriginCoche); //PARA QUE SIRVE ESTO (PREGUNTAR A PITA)
 }
+
 
 //Actualiza la posición del coche con las datos conseguidos del análisis de la posición del coche en "calculaPosición"
 void avanzaCarril(const tCarretera carretera, tCoche& coche) {
@@ -244,15 +253,15 @@ void avanzaCarril(const tCarretera carretera, tCoche& coche) {
 		/*Con la carretera dibujada, la posición que se observa en la pantalla es analizada como posición "sorpresa" o "clavo". 
 		Si no es ninguna de las dos, indirectamente se analiza la posción como normal invocando de nuevo a "avanzaCarril" desde "simulaCarrera" */
 		if (calculaPosicion(carretera, coche)) {
-			std::cout << "El coche se halla en la posicion " << coche.pos << '\n';
+			std::cout << "POSICION SORPRESA :) El coche ahora se halla en la posicion " << coche.pos << '\n';
 			dibujaCarretera(carretera, coche.pos);
 			
 		}
 		else if (esClavo(carretera, coche.pos)) {
 			calculaPosicion(carretera, coche);
-			std::cout << "El coche se ha pinchado. Va estar inmovilizado " << coche.tiempoParado << " pasos\n";
-			for (int g = 0; g < coche.tiempoParado; ++g) std::cout << "Le quedan " << coche.tiempoParado - g << " pasos para moverse\n";
-			std::cout << '\n';
+			std::cout << "El coche se ha pinchado. Va estar inmovilizado " << coche.tiempoParado << " turnos\n";
+			for (int g = coche.tiempoParado; g > 1; --g) std::cout << "Le quedan " << g << " turnos para moverse\n";
+			std::cout << "Le queda 1 turno para moverse\n\n";
 			coche.tiempoParado = 0;
 		}
 	}
@@ -279,14 +288,19 @@ int main() {
 
 	simulaCarrera(carretera,coche); //Se simula la carrera
 
+	std::string respuestaOtraSimulacion;
+	std::cout << char(168) << "Desea realizar otra simulacion (S/N)? ";
+	std::cin >> respuestaOtraSimulacion;
+	std::cout << '\n';
+
 	//Si las respuestas son diferentes de "S" y "N" se pregunta al usuario de nuevo
-	while (respuesta != "S" && respuesta != "N") {
+	while (respuestaOtraSimulacion != "S" && respuestaOtraSimulacion != "N") {
 		std::cout << char(168) << "Desea realizar otra simulacion (S/N)? ";
-		std::cin >> respuesta;
+		std::cin >> respuestaOtraSimulacion;
 		std::cout << '\n';
 	} 
 
-	if (respuesta == "S") main();
+	if (respuestaOtraSimulacion == "S") main();
 	else return 0;
 	
 }

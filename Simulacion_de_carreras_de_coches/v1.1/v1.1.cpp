@@ -8,11 +8,11 @@
 #include <ctime>
 
 //VARIABLES
-const int LONG_CARRETERA = 20,
+const int LONG_CARRETERA = 10,
 MAX_PASOS = 2,
 TIEMPO_PARADO = 2;
 
-const bool DEBUG = true;
+const bool DEBUG = false;
 
 const char CHAR_LINEA_HORIZONTAL = char(205),
 CHAR_ESQUINA_SUPERIOR_IZQUIERDA = char(201),
@@ -45,6 +45,7 @@ void iniciaCarretera(tCarretera carretera) {
 }
 
 
+
 //Leen el archivo dado por el usuario y cargan la carretera
 tTipoPosicion stringToEnum(std::string s) { //Transforma el string "s" en su correspondiente elemento del tipo enumerado "tTipoPosicion".
 
@@ -60,7 +61,7 @@ bool cargaCarretera(tCarretera carretera) {
 	std::cin >> nombreDelArchivo; // Pide el nombre del archivo al usuario 
 
 	char saltoDeLinea;
-	std::cin.get(saltoDeLinea); //Evita que un salto de línea se capte en la función "avanza"
+	std::cin.get(saltoDeLinea); //Evita que el salto de línea al introducir el nombre del archivo se capte en la función "avanza"
 
 	std::ifstream entrada;
 	entrada.open(nombreDelArchivo);
@@ -91,6 +92,7 @@ bool cargaCarretera(tCarretera carretera) {
 	}
 
 }
+
 
 
 //Dibujo de los tramos individuales de la carretera
@@ -126,6 +128,7 @@ void dibujaCarretera(const tCarretera carretera, int posCocche) {
 	dibujaCarril(carretera, posCocche);
 	dibujaLineaHorizontalInferior();
 }
+
 
 
 //Verifican si una posición es de un tipo especial (sorpresa o clavo), la última verifica si una posición está en la carretera
@@ -170,22 +173,31 @@ int avanza(int posCoche) {
 			std::cout << '\n';
 		}
 		
+		std::cout << std::setw(120) << std::setfill('-') << "-\n\n"; //Para facilitar la lectura de la simulación
+
 		numPasos = 1 + rand() % MAX_PASOS; //Genera un número aleatorio entre 1 y MAX_PASOS, que es sumado luego a la posición del coche
 		posNuevaCoche = posCoche + numPasos;
 
 		if (numPasos > 1) std::cout << "El coche avanza " << numPasos << " pasos\n";
 		else std::cout << "El coche avanza " << numPasos << " paso\n";
 
-		return posNuevaCoche;
 	}
 	else {
+
+		std::cout << std::setw(120) << std::setfill('-') << "-\n\n"; //Para facilitar la lectura de la simulación
+
 		std::cout << "Pasos que avanza o retrocede el coche: ";
 		std::cin >> numPasos;
+
+		char saltoDeLinea;
+		std::cin.get(saltoDeLinea);
+
 		posNuevaCoche = posCoche + numPasos; 
 
 		if (posNuevaCoche < 0) return 0;
-		else return posNuevaCoche;
 	}
+
+	return posNuevaCoche;
 }
 
 //Analiza el caso en el que la posición del coche es mayor o igual que la meta
@@ -213,12 +225,17 @@ bool calculaPosicion(const tCarretera carretera, tCoche& coche) {
 			int respuestaSorpresa;
 			std::cout << char(168) << "Desea avanzar o retroceder hacia la posicion de la sorpresa mas cercana (1/-1)? ";
 			std::cin >> respuestaSorpresa;
+			
+			char saltoDeLinea;
+			std::cin.get(saltoDeLinea); //Evita que el salto de línea al introducir la respuesta se capte en la función "avanza"
 			std::cout << '\n';
+
 
 			//Si las respuestas son diferentes de "1" y "-1" se pregunta al usuario de nuevo
 			while (respuestaSorpresa != 1 && respuestaSorpresa != -1) {
 				std::cout << char(168) << "Desea avanzar o retroceder hacia la posicion de la sorpresa mas cercana (1/-1)? ";
 				std::cin >> respuestaSorpresa;
+				std::cin.get(saltoDeLinea);
 				std::cout << '\n';
 			}
 
@@ -238,11 +255,13 @@ bool calculaPosicion(const tCarretera carretera, tCoche& coche) {
 }
 
 
+
 //Actualiza la posición del coche con las datos conseguidos del análisis de la posición del coche en "calculaPosición"
 void avanzaCarril(const tCarretera carretera, tCoche& coche) {
 	
-	if (!haLlegado(coche.pos) && coche.tiempoParado == 0) coche.pos = avanza(coche.pos); //Se actualiza la posición del coche
-	
+	if (!haLlegado(coche.pos) && coche.tiempoParado == 0) { //Se actualiza la posición del coche
+		coche.pos = avanza(coche.pos); 
+	}
 	if (haLlegado(coche.pos)) {
 		coche.pos = LONG_CARRETERA;
 		dibujaCarretera(carretera, coche.pos); //Se dibuja la carretera con el coche ya en la meta. Como "avanza carril" solo se invoca en "simulaCarrera", si la posición del coche es menor que "LONG_CARRETERA", se sigue con lo que hay después en el main
@@ -253,12 +272,38 @@ void avanzaCarril(const tCarretera carretera, tCoche& coche) {
 		/*Con la carretera dibujada, la posición que se observa en la pantalla es analizada como posición "sorpresa" o "clavo". 
 		Si no es ninguna de las dos, indirectamente se analiza la posción como normal invocando de nuevo a "avanzaCarril" desde "simulaCarrera" */
 		if (calculaPosicion(carretera, coche)) {
+
+			char respuestaModoNormal;
+
+			std::cout << "Pulse la tecla " << "\"Enter\"" << " para continuar";
+			std::cin.get(respuestaModoNormal);
+			std::cout << '\n';
+
+			while (respuestaModoNormal != '\n') {
+				std::cout << "Pulse la tecla " << "\"Enter\"" << " para continuar";
+				std::cin.get(respuestaModoNormal);
+				std::cout << '\n';
+			}
+
 			std::cout << "POSICION SORPRESA :) El coche ahora se halla en la posicion " << coche.pos << '\n';
 			dibujaCarretera(carretera, coche.pos);
 			
 		}
 		else if (esClavo(carretera, coche.pos)) {
 			calculaPosicion(carretera, coche);
+
+			char respuestaModoNormal;
+
+			std::cout << "Pulse la tecla " << "\"Enter\"" << " para continuar";
+			std::cin.get(respuestaModoNormal);
+			std::cout << '\n';
+
+			while (respuestaModoNormal != '\n') {
+				std::cout << "Pulse la tecla " << "\"Enter\"" << " para continuar";
+				std::cin.get(respuestaModoNormal);
+				std::cout << '\n';
+			}
+
 			std::cout << "El coche se ha pinchado. Va estar inmovilizado " << coche.tiempoParado << " turnos\n";
 			for (int g = coche.tiempoParado; g > 1; --g) std::cout << "Le quedan " << g << " turnos para moverse\n";
 			std::cout << "Le queda 1 turno para moverse\n\n";
@@ -272,6 +317,8 @@ void simulaCarrera(const tCarretera carretera, tCoche& coche) {
 	dibujaCarretera(carretera, coche.pos);
 	while (coche.pos < LONG_CARRETERA) avanzaCarril (carretera,coche);
 }
+
+
 
 
 int main() {

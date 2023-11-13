@@ -1,3 +1,5 @@
+//Nombre y apellidos: Manuel Kwabenanro Dzimah Castro
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -91,11 +93,10 @@ void dibujaCarril(const tCarretera carretera, int posCoche) {
 
 	std::cout << CHAR_LINEA_VERTICAL << '\n' << CHAR_LINEA_VERTICAL;
 
-	for (int k = 0; k < LONG_CARRETERA; ++k) { //Se muestra el segundo carril teniendo en cuenta la posicion del coche
-		if (k == posCoche) std::cout << CHAR_COCHE;
-		else std::cout << CHAR_NORMAL;
-	}
-
+	//Se muestra el segundo carril teniendo en cuenta la posicion del coche
+	for (int k = 0; k < posCoche; ++k) std::cout << ' ';
+	std::cout << CHAR_COCHE;
+	for (int l = 0; l < LONG_CARRETERA - (posCoche + 1); ++l) std::cout << ' ';
 	std::cout << CHAR_LINEA_VERTICAL << '\n';
 
 }
@@ -115,7 +116,7 @@ int main() {
 	int posicionCoche = 0;
 	tCarretera carretera;
 
-	while (cargaCarretera(carretera) == false); //Se cargan los datos a "carretera"
+	while (!cargaCarretera(carretera)); //Se cargan los datos a "carretera"
 
 	dibujaCarretera(carretera, posicionCoche); //Con los datos de "carretera", se dibuja la carretera
 

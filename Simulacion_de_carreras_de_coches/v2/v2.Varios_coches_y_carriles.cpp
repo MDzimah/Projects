@@ -105,11 +105,11 @@ bool cargaCarretera(tCarretera& carriles) {
 
 	if (entrada.is_open()) { //Si se abre el archivo, se cargan los datos en "carretera" y se devuelve "true". De lo contrario, se informa del error, se devuelve "false" y se da al usuario otra oportunidad
 
-		for (int i = 0; i < NUM_CARRILES; ++i) { 
+		for (int i = 0; i < NUM_CARRILES; ++i) {
 			iniciaCarril(carriles[i]);
-			leeCarril(entrada, carriles[i]); 
+			leeCarril(entrada, carriles[i]);
 		}
-		
+
 		entrada.close();
 
 		return true;
@@ -161,10 +161,10 @@ void dibujaLineaHorizontalInferior() {
 void dibujaCarretera(const tCarretera carretera, int posCocche) {
 	dibujaLineaHorizontalSuperior();
 	for (int carril = 0; carril < NUM_CARRILES; ++carril) {
-		dibujaCarril(carretera [carril]);
+		dibujaCarril(carretera[carril]);
 		std::cout << " \t (Carril " << carril << ")\n"; //Para facilitar la lectura de la simulación
 		if (carril < NUM_CARRILES - 1) dibujaLineaDiscontinua();
-		
+
 	}
 	dibujaLineaHorizontalInferior();
 }
@@ -252,7 +252,7 @@ bool calculaPosicion(tCarril& carril) {
 
 	int posOriginCoche = 0;
 
-	if (esClavo(carril.posiciones,carril.coche.pos) && carril.coche.tiempoParado == 0) carril.coche.tiempoParado = TIEMPO_PARADO;
+	if (esClavo(carril.posiciones, carril.coche.pos) && carril.coche.tiempoParado == 0) carril.coche.tiempoParado = TIEMPO_PARADO; //Para que un coche ya pinchado en un turno anterior no vuelva a estar inmovilizado "TIEMPO_PARADO" de turnos, se añade la condición de que el tiempoParado de coche ha de ser 0 necesariamente
 	else if (esSorpresa(carril.posiciones, carril.coche.pos)) {
 		int incremento;
 
@@ -285,7 +285,7 @@ bool calculaPosicion(tCarril& carril) {
 		}
 
 		/*Como se indica que esta funcion tiene que devolver "true" solo si la posicion del coche es sorpresa, hace falta almacenar la posicion original del coche antes
-		de modificarla. De este modo, al volver a la funcion "avanza carril", calclaPosicion es "true" y se dibuja la carretera correspondiente en lugar de saltarlo*/
+		de modificarla. De este modo, al volver a la funcion "avanzaCarril", "calculaPosicion" es "true" y se dibuja la carretera correspondiente en lugar de saltarlo*/
 		posOriginCoche = carril.coche.pos;
 
 
@@ -315,27 +315,8 @@ bool avanzaCarril(tCarretera carretera, int i) {
 
 		/*Con la carretera dibujada, la posición que se observa en la pantalla es analizada como posición "sorpresa" o "clavo".
 		Si no es ninguna de las dos, indirectamente se analiza la posción como normal invocando de nuevo a "avanzaCarril" desde "simulaCarrera" */
-		
-		
-		if (calculaPosicion(carretera[i])) {
 
-			char respuestaModoNormal;
-
-			std::cout << "Pulse la tecla " << "\"Enter\"" << " para continuar";
-			std::cin.get(respuestaModoNormal);
-			std::cout << '\n';
-
-			while (respuestaModoNormal != '\n') {
-				std::cout << "Pulse la tecla " << "\"Enter\"" << " para continuar";
-				std::cin.get(respuestaModoNormal);
-				std::cout << '\n';
-			}
-
-			std::cout << "POSICION SORPRESA :) El coche ahora se halla en la posicion " << carretera[i].coche.pos << '\n';
-			dibujaCarretera(carretera, carretera[i].coche.pos);
-
-		}
-		else if (esClavo(carretera->posiciones, carretera[i].coche.pos) || carretera[i].coche.tiempoParado > 0) { //Pq se utiliza "->" en lugar de un punto para esto??? (PREGUNTAR A PITA)
+		if (esClavo(carretera[i].posiciones, carretera[i].coche.pos) || carretera[i].coche.tiempoParado > 0) { //Evalúo primero si la posición en cuestión es "clavo" para evitar llamar a "calculaPosicion" inecesariamente
 			calculaPosicion(carretera[i]);
 
 			char respuestaModoNormal;
@@ -356,15 +337,32 @@ bool avanzaCarril(tCarretera carretera, int i) {
 				else std::cout << "Coche en carril " << i << " pinchado. Va a estar " << carretera[i].coche.tiempoParado << " turno sin moverse\n\n";
 			}
 
-			--carretera[i].coche.tiempoParado; //Pasa algo con el TIEMPO PARADO (mira bool busca posicion, quizás sea el coche.tiempoParado o el "or" en esta función)
+			--carretera[i].coche.tiempoParado;
 		}
-		
+		else if (calculaPosicion(carretera[i])) {
+
+			char respuestaModoNormal;
+
+			std::cout << "Pulse la tecla " << "\"Enter\"" << " para continuar";
+			std::cin.get(respuestaModoNormal);
+			std::cout << '\n';
+
+			while (respuestaModoNormal != '\n') {
+				std::cout << "Pulse la tecla " << "\"Enter\"" << " para continuar";
+				std::cin.get(respuestaModoNormal);
+				std::cout << '\n';
+			}
+
+			std::cout << "POSICION SORPRESA :) El coche ahora se halla en la posicion " << carretera[i].coche.pos << '\n';
+			dibujaCarretera(carretera, carretera[i].coche.pos);
+
+		}
 	}
 
 	return haLlegado(carretera[i].coche.pos);
 }
 
-void avanzaCarriles(tCarretera carretera, tClasificacion& clasificacion) {
+void avanzaCarriles(tCarretera carretera, tClasificacion clasificacion) {
 
 	for (int carril = 0; carril < NUM_CARRILES; ++carril) {
 		if (avanzaCarril(carretera, carril)) {
@@ -372,7 +370,7 @@ void avanzaCarriles(tCarretera carretera, tClasificacion& clasificacion) {
 			++clasificacion.cont;
 		}
 	}
-	
+
 }
 
 
@@ -380,10 +378,10 @@ void avanzaCarriles(tCarretera carretera, tClasificacion& clasificacion) {
 
 //Mantiene la simulación en curso mientras se de la condición dada
 tClasificacion simulaCarrera(tCarretera carretera, tListaClasificacion lista) { //PREGUNTAR A PITA SI FALTA PONER tListaClasificacion lista en la cabecera de la funcion (en el guión de la práctica no está)
-	dibujaCarretera(carretera,carretera->coche.pos);
-	while (carretera->coche.pos < LONG_CARRETERA) avanzaCarriles(carretera,lista.lista[NUM_CARRILES]);
+	dibujaCarretera(carretera, carretera->coche.pos);
+	while (carretera->coche.pos < LONG_CARRETERA) avanzaCarriles(carretera, lista.lista[lista.lista->cont]);
 
-	return lista.lista [NUM_CARRILES];
+	return lista.lista[lista.lista->cont];
 }
 
 //Subprogramas encargados de gestionar y mostrar la clasificación
@@ -391,24 +389,24 @@ tClasificacion simulaCarrera(tCarretera carretera, tListaClasificacion lista) { 
 std::ostream& operator<<(std::ostream& salida, tClasificacion const& cl) {
 
 	salida << cl.idCarrera << '\n';
-	for (int y = 0; y < cl.cont; ++y) 
+	for (int y = 0; y < cl.cont; ++y)
 		salida << "\tPuesto " << y << ": coche del carril " << cl.clasificacion[y] << '\n';
 
 	return salida;
 }
 
 void iniciaListaClasificacion(tListaClasificacion& listaC) {
-	listaC.cont = 0;
+	listaC.cont = listaC.lista->cont = 0;
 }
 
 void eliminaClasificacion(tListaClasificacion& listaC, int pos) {
 
-	for (int b = pos; b < MAX_CARRERAS-1; ++b) listaC.lista[b] = listaC.lista[b + 1];
+	for (int b = pos; b < MAX_CARRERAS - 1; ++b) listaC.lista[b] = listaC.lista[b + 1];
 }
 void insertaClasificacion(tListaClasificacion& listaC, const tClasificacion& clasificacion) {
 
 	if (listaC.cont == MAX_CARRERAS) eliminaClasificacion(listaC, 0);
-	
+
 	listaC.lista[listaC.cont - 1] = clasificacion;
 
 }
@@ -430,8 +428,10 @@ int main() {
 
 		tCarretera carretera;
 		tListaClasificacion lista;
-		
+
 		while (!cargaCarretera(carretera)); //Carga los datos a "carretera", un array de tipo "tCarretera" (enumerado)
+
+		iniciaListaClasificacion(lista);
 
 		std::cout << "Introduzca el identificador para la carrera: ";
 		std::cin >> lista.lista->idCarrera;
@@ -440,9 +440,7 @@ int main() {
 		char saltoDeLinea;
 		std::cin.get(saltoDeLinea);
 
-		iniciaListaClasificacion(lista);
-
-		simulaCarrera(carretera,lista); //Se simula la carrera
+		simulaCarrera(carretera, lista); //Se simula la carrera
 
 		guardarListaClasificacion(lista); //Se guarda la lista de clasificaciones al terminar la simulación
 

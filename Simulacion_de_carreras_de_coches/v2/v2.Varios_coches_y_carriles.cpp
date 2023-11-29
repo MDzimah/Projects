@@ -162,7 +162,7 @@ void dibujaCarretera(const tCarretera carretera, int posCocche) {
 	dibujaLineaHorizontalSuperior();
 	for (int carril = 0; carril < NUM_CARRILES; ++carril) {
 		dibujaCarril(carretera [carril]);
-		std::cout << "\t (Carril " << carril << ")\n"; //Para facilitar la lectura de la simulación
+		std::cout << " \t (Carril " << carril << ")\n"; //Para facilitar la lectura de la simulación
 		if (carril < NUM_CARRILES - 1) dibujaLineaDiscontinua();
 		
 	}
@@ -203,25 +203,24 @@ int avanza(int posCoche) {
 
 	if (!DEBUG) {
 
+		numPasos = 1 + rand() % MAX_PASOS; //Genera un número aleatorio entre 1 y MAX_PASOS, que es sumado luego a la posición del coche
+		posNuevaCoche = posCoche + numPasos;
+
+		if (numPasos > 1) std::cout << "El coche avanza " << numPasos << " pasos\n\n";
+		else std::cout << "El coche avanza " << numPasos << " paso\n\n";
+
+
 		char respuestaModoNormal;
 
-		std::cout << "Pulse la tecla " << "\"Enter\"" << " para continuar";
+		std::cout << "Pulse la tecla \"Enter\" para continuar";
 		std::cin.get(respuestaModoNormal); //Se capta el primer salto de línea ("Enter") después de imprimir la frase, no un salto de línea anterior
 		std::cout << '\n';
 
 		while (respuestaModoNormal != '\n') {
-			std::cout << "Pulse la tecla " << "\"Enter\"" << " para continuar";
+			std::cout << "Pulse la tecla \"Enter\" para continuar";
 			std::cin.get(respuestaModoNormal);
 			std::cout << '\n';
 		}
-
-		std::cout << std::setw(120) << std::setfill('-') << "-\n\n"; //Para facilitar la lectura de la simulación
-
-		numPasos = 1 + rand() % MAX_PASOS; //Genera un número aleatorio entre 1 y MAX_PASOS, que es sumado luego a la posición del coche
-		posNuevaCoche = posCoche + numPasos;
-
-		if (numPasos > 1) std::cout << "El coche avanza " << numPasos << " pasos\n";
-		else std::cout << "El coche avanza " << numPasos << " paso\n";
 
 	}
 	else {
@@ -253,7 +252,7 @@ bool calculaPosicion(tCarril& carril) {
 
 	int posOriginCoche = 0;
 
-	if (esClavo(carril.posiciones,carril.coche.pos)) carril.coche.tiempoParado = TIEMPO_PARADO;
+	if (esClavo(carril.posiciones,carril.coche.pos) && carril.coche.tiempoParado == 0) carril.coche.tiempoParado = TIEMPO_PARADO;
 	else if (esSorpresa(carril.posiciones, carril.coche.pos)) {
 		int incremento;
 
@@ -281,7 +280,6 @@ bool calculaPosicion(tCarril& carril) {
 				std::cin.get(saltoDeLinea);
 				std::cout << '\n';
 			}
-
 			if (incremento == 0) --incremento;
 
 		}
@@ -302,10 +300,12 @@ bool calculaPosicion(tCarril& carril) {
 //Actualiza la posición del coche con las datos conseguidos del análisis de la posición del coche en "calculaPosición"
 bool avanzaCarril(tCarretera carretera, int i) {
 
-	if (!haLlegado(carretera[i].coche.pos) && carretera[i].coche.tiempoParado == 0) { //Se actualiza la posición del coche
-		std::cout << "\nAvanzando en el carril " << i << "...\n\n";
-		carretera[i].coche.pos = avanza(carretera[i].coche.pos);
-	}
+	std::cout << std::setw(120) << std::setfill('-') << "-\n\n"; //Para facilitar la lectura de la simulación
+
+	std::cout << "Avanzando en el carril " << i << "...\n\n";
+
+	if (!haLlegado(carretera[i].coche.pos) && carretera[i].coche.tiempoParado == 0) carretera[i].coche.pos = avanza(carretera[i].coche.pos); //Se actualiza la posición del coche
+
 	if (haLlegado(carretera[i].coche.pos)) {
 		carretera[i].coche.pos = LONG_CARRETERA;
 		dibujaCarretera(carretera, carretera[i].coche.pos); //Se dibuja la carretera con el coche ya en la meta. Como "avanza carril" solo se invoca en "simulaCarrera", si la posición del coche es menor que "LONG_CARRETERA", se sigue con lo que hay después en el main
@@ -315,6 +315,7 @@ bool avanzaCarril(tCarretera carretera, int i) {
 
 		/*Con la carretera dibujada, la posición que se observa en la pantalla es analizada como posición "sorpresa" o "clavo".
 		Si no es ninguna de las dos, indirectamente se analiza la posción como normal invocando de nuevo a "avanzaCarril" desde "simulaCarrera" */
+		
 		
 		if (calculaPosicion(carretera[i])) {
 
@@ -334,7 +335,7 @@ bool avanzaCarril(tCarretera carretera, int i) {
 			dibujaCarretera(carretera, carretera[i].coche.pos);
 
 		}
-		else if (esClavo(carretera->posiciones,carretera[i].coche.pos)) { //Pq se utiliza "->" en lugar de un punto para esto??? (PREGUNTAR A PITA)
+		else if (esClavo(carretera->posiciones, carretera[i].coche.pos) || carretera[i].coche.tiempoParado > 0) { //Pq se utiliza "->" en lugar de un punto para esto??? (PREGUNTAR A PITA)
 			calculaPosicion(carretera[i]);
 
 			char respuestaModoNormal;
@@ -349,11 +350,15 @@ bool avanzaCarril(tCarretera carretera, int i) {
 				std::cout << '\n';
 			}
 
-			std::cout << "El coche se ha pinchado. Va estar inmovilizado " << carretera[i].coche.tiempoParado << " turnos\n";
-			for (int g = carretera[i].coche.tiempoParado; g > 1; --g) std::cout << "Le quedan " << g << " turnos para moverse\n";
-			std::cout << "Le queda 1 turno para moverse\n\n";
-			carretera[i].coche.tiempoParado = 0;
+			if (carretera[i].coche.tiempoParado == TIEMPO_PARADO) std::cout << "El coche se ha pinchado. Va estar " << TIEMPO_PARADO << " turnos sin moverse\n\n";
+			else {
+				if (carretera[i].coche.tiempoParado > 1) std::cout << "Coche en carril " << i << " pinchado. Va a estar " << carretera[i].coche.tiempoParado << " turnos sin moverse\n\n";
+				else std::cout << "Coche en carril " << i << " pinchado. Va a estar " << carretera[i].coche.tiempoParado << " turno sin moverse\n\n";
+			}
+
+			--carretera[i].coche.tiempoParado; //Pasa algo con el TIEMPO PARADO (mira bool busca posicion, quizás sea el coche.tiempoParado o el "or" en esta función)
 		}
+		
 	}
 
 	return haLlegado(carretera[i].coche.pos);
@@ -362,9 +367,8 @@ bool avanzaCarril(tCarretera carretera, int i) {
 void avanzaCarriles(tCarretera carretera, tClasificacion& clasificacion) {
 
 	for (int carril = 0; carril < NUM_CARRILES; ++carril) {
-		avanzaCarril(carretera, carril);
 		if (avanzaCarril(carretera, carril)) {
-			clasificacion.clasificacion [clasificacion.cont] = carril;
+			clasificacion.clasificacion[clasificacion.cont] = carril;
 			++clasificacion.cont;
 		}
 	}
@@ -432,6 +436,9 @@ int main() {
 		std::cout << "Introduzca el identificador para la carrera: ";
 		std::cin >> lista.lista->idCarrera;
 		std::cout << '\n';
+
+		char saltoDeLinea;
+		std::cin.get(saltoDeLinea);
 
 		iniciaListaClasificacion(lista);
 

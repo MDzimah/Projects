@@ -6,7 +6,8 @@
 #include <iomanip>
 #include <cstdlib>
 #include <ctime>
-#include <assert.h>
+
+
 
 //VARIABLES
 const int LONG_CARRETERA = 10,
@@ -54,9 +55,10 @@ struct tListaClasificacion {
 };
 
 
+
 //FUNCIONES
 
-//Inicializan el coche y la carretera
+//Inicializan el coche con su carril correspondiente
 void iniciaCoche(tCoche& coche) {
 	coche.pos = coche.tiempoParado = 0;
 }
@@ -74,14 +76,13 @@ tTipoPosicion stringToEnum(std::string s) { //Transforma el string "s" en su cor
 	else return NORMAL;
 
 }
-
 void leeCarril(std::ifstream& archivo, tCarril& carril) {
 
 	std::string objEnCarretera;
 	int numObj, posObj;
 
 	archivo >> objEnCarretera;
-	while (objEnCarretera != CENTINELA) {
+	while (objEnCarretera != CENTINELA) { //Se lee hasta el centinela porque nos dice que ya no hay más objetos especiales sobre el carril en cuestión
 		archivo >> numObj;
 		for (int i = 0; i < numObj; ++i) {
 			archivo >> posObj;
@@ -90,15 +91,14 @@ void leeCarril(std::ifstream& archivo, tCarril& carril) {
 		archivo >> objEnCarretera;
 	}
 }
-
 bool cargaCarretera(tCarretera& carriles) {
 
 	std::cout << "Introduzca el nombre del archivo de la carretera: ";
 	std::string nombreDelArchivo;
-	std::cin >> nombreDelArchivo; // Pide el nombre del archivo al usuario 
+	std::cin >> nombreDelArchivo;
 
 	char saltoDeLinea;
-	std::cin.get(saltoDeLinea); //Evita que el salto de línea al introducir el nombre del archivo se capte en la función "avanza"
+	std::cin.get(saltoDeLinea);
 
 	std::ifstream entrada;
 	entrada.open(nombreDelArchivo);
@@ -106,6 +106,7 @@ bool cargaCarretera(tCarretera& carriles) {
 
 	if (entrada.is_open()) { //Si se abre el archivo, se cargan los datos en "carretera" y se devuelve "true". De lo contrario, se informa del error, se devuelve "false" y se da al usuario otra oportunidad
 
+		//En cada vuelta se inicializa un carril y se cargan los datos leídos del fichero
 		for (int i = 0; i < NUM_CARRILES; ++i) {
 			iniciaCarril(carriles[i]);
 			leeCarril(entrada, carriles[i]);
@@ -125,7 +126,6 @@ bool cargaCarretera(tCarretera& carriles) {
 
 
 //Dibujo de los tramos individuales de la carretera
-
 void dibujaLineaHorizontalSuperior() {
 	std::cout << CHAR_ESQUINA_SUPERIOR_IZQUIERDA << std::setw(LONG_CARRETERA) << std::setfill(CHAR_LINEA_HORIZONTAL) << CHAR_LINEA_HORIZONTAL << CHAR_ESQUINA_SUPERIOR_DERECHA << '\n';
 }
@@ -171,8 +171,7 @@ void dibujaCarretera(const tCarretera carretera, int posCocche) {
 }
 
 
-
-//Verifican si una posición es de un tipo especial (sorpresa o clavo), la última verifica si una posición está en la carretera
+//Verifican si una posición es de un tipo especial ("sorpresa" o "clavo"), la última verifica si una posición está en la carretera
 bool esSorpresa(const tTipoPosicion pos[], int p) {
 	return pos[p] == SORPRESA;
 }
@@ -184,7 +183,7 @@ bool enCarretera(int n) {
 }
 
 
-//Busca la posicion sorpresa más cercana. Si el modo DEBUG es "true" (modo depuración) entonces pregunta al usuario si quiere avanzar o retroceder a la sorpresa más cercana. Del contrario (modo normal), esto último es de manera aleatoria
+//Busca la posicion sorpresa más cercana. Si el modo DEBUG es "true" (modo depuración) entonces pregunta al usuario si quiere avanzar o retroceder a la sorpresa más cercana. Del contrario (modo normal), esto último se hará de manera aleatoria
 int	buscaSiguientePosSorpresa(const	tCarril& carril, int incr) {
 
 	int m = carril.coche.pos;
@@ -239,13 +238,11 @@ int avanza(int posCoche) {
 	return posNuevaCoche;
 }
 
-//Analiza el caso en el que la posición del coche es mayor o igual que la meta
+
+//Analizan la posición del coche, una si el coche del carril en cuestión ha llegado a la meta y la otra si se halla en una posición especial
 bool haLlegado(int posCoche) {
 	return posCoche >= LONG_CARRETERA;
 }
-
-
-//Analiza la posición del coche
 bool calculaPosicion(tCarril& carril) {
 
 	int posOriginCoche = 0;
@@ -294,8 +291,7 @@ bool calculaPosicion(tCarril& carril) {
 }
 
 
-
-//Actualiza la posición del coche con las datos conseguidos del análisis de la posición del coche en "calculaPosición"
+//Avanza cada carril individual y analiza las posiciones especiales gracias a las funciones "calculaPosicion" y "haLlegado"
 bool avanzaCarril(tCarretera carretera, int i) {
 
 	int posOriginalCoche = 0;
@@ -364,13 +360,13 @@ bool avanzaCarril(tCarretera carretera, int i) {
 		}
 	}
 
-	return (posOriginalCoche != LONG_CARRETERA && haLlegado(carretera[i].coche.pos)); //Es necesario saber si anteriormente ya había llegado el coche para evitar que se actualice la clasificación por este caso
+	return posOriginalCoche != LONG_CARRETERA && haLlegado(carretera[i].coche.pos); //Es necesario saber si anteriormente ya había llegado el coche para evitar que se actualice la clasificación por este caso
 }
 
+//Con la función anterior, aquí se avanzan todos los carriles
 void avanzaCarriles(tCarretera carretera, tClasificacion& clasificacion) {
 
 	for (int carril = 0; carril < NUM_CARRILES; ++carril) {
-
 		if (avanzaCarril(carretera, carril)) {
 			clasificacion.clasificacion[clasificacion.cont] = carril;
 			++clasificacion.cont;
@@ -379,23 +375,26 @@ void avanzaCarriles(tCarretera carretera, tClasificacion& clasificacion) {
 
 }
 
-
-
-
-//Mantiene la simulación en curso mientras se de la condición dada
-tClasificacion simulaCarrera(tCarretera carretera) {
+//Mantiene la simulación en curso solo si todos los coches no han llegado al final
+tClasificacion simulaCarrera(tCarretera carretera, tListaClasificacion& lista) {
 	dibujaCarretera(carretera, carretera->coche.pos);
 
 	tClasificacion clasificacion;
 	clasificacion.cont = 0;
+
+	if (lista.cont < MAX_CARRERAS)
+		clasificacion.idCarrera = lista.lista[lista.cont].idCarrera;
+	else clasificacion.idCarrera = lista.lista[0].idCarrera;
+	/*Cuando la lista de clasificaciones está llena, se guarda el índice de la carrera que va a ser simulada en el carril 0 de las listas de
+	clasificaciones ya que el carril 0 será borrado posteriormente de las listas de clasificaciones*/
 
 	while (clasificacion.cont < NUM_CARRILES) avanzaCarriles(carretera, clasificacion);
 
 	return clasificacion;
 }
 
-//Subprogramas encargados de gestionar y mostrar la clasificación
 
+//Subprogramas encargados de gestionar y mostrar la clasificación
 std::ostream& operator<<(std::ostream& salida, tClasificacion const& cl) {
 
 	for (int y = 0; y < NUM_CARRILES; ++y)
@@ -403,22 +402,18 @@ std::ostream& operator<<(std::ostream& salida, tClasificacion const& cl) {
 
 	return salida;
 }
-
 void iniciaListaClasificacion(tListaClasificacion& listaC) {
 	listaC.cont = 0;
 }
 
 void eliminaClasificacion(tListaClasificacion& listaC, int pos) {
 
-	for (int b = pos; b <= MAX_CARRERAS - 1; ++b) listaC.lista[b] = listaC.lista[b + 1];
+	for (int b = pos; b < MAX_CARRERAS - 1; ++b) listaC.lista[b] = listaC.lista[b + 1];
 }
 void insertaClasificacion(tListaClasificacion& listaC, const tClasificacion& clasificacion) {
 
-
-	listaC.lista[listaC.cont].idCarrera = clasificacion.idCarrera; //WHY IS THIS POSSIBLE BUT NOT THE OTHER WAY ROUND???????
-	clasificacion.idCarrera = listaC.lista[listaC.cont].idCarrera;
-
-	if (listaC.cont < MAX_CARRERAS - 1) listaC.lista[listaC.cont] = clasificacion;
+	if (listaC.cont < MAX_CARRERAS)
+		listaC.lista[listaC.cont] = clasificacion;
 	else {
 		eliminaClasificacion(listaC, 0);
 		listaC.lista[MAX_CARRERAS - 1] = clasificacion;
@@ -426,57 +421,55 @@ void insertaClasificacion(tListaClasificacion& listaC, const tClasificacion& cla
 
 }
 
-bool guardarListaClasificacion(const tListaClasificacion& listaC) {
+void guardarListaClasificacion(const tListaClasificacion& listaC) {
 
 	std::ofstream archGuardarListaClasf;
-	archGuardarListaClasf.open("clasificacion.txt");
+	archGuardarListaClasf.open("clasificacion.txt", std::ios::app);
 
-	if (archGuardarListaClasf.is_open()) {
+	if (listaC.cont < MAX_CARRERAS)
+		archGuardarListaClasf << listaC.lista[listaC.cont - 1].idCarrera << '\n' << (archGuardarListaClasf, listaC.lista[listaC.cont - 1]);
+	else archGuardarListaClasf << listaC.lista[MAX_CARRERAS - 1].idCarrera << '\n' << (archGuardarListaClasf, listaC.lista[MAX_CARRERAS - 1]);
 
-		if (listaC.cont < MAX_CARRERAS - 1) archGuardarListaClasf << listaC.lista[listaC.cont].idCarrera << '\n' << (archGuardarListaClasf, listaC.lista[listaC.cont]);
-		else archGuardarListaClasf << listaC.lista[MAX_CARRERAS - 1].idCarrera << '\n' << (archGuardarListaClasf, listaC.lista[MAX_CARRERAS - 1]);
-
-		archGuardarListaClasf.close();
-
-		return true;
-	}
-	else return false;
-
+	archGuardarListaClasf.close();
 }
+
 
 int main() {
 
-	std::string respOtraSim;
+	tCarretera carretera;
+	while (!cargaCarretera(carretera));
 
 	tListaClasificacion lista;
-
 	iniciaListaClasificacion(lista);
+
+	std::cout << "\nIntroduzca el identificador para la carrera: ";
+	std::cin >> lista.lista[lista.cont].idCarrera;
+	std::cout << '\n';
+
+	char saltoDeLinea;
+	std::cin.get(saltoDeLinea);
+
+	char respOtraSim;
 
 	do {
 		srand(time(NULL));
-		tCarretera carretera;
 
-		while (!cargaCarretera(carretera)); //Carga los datos a "carretera", un array de tipo "tCarretera" (enumerado)
+		/* Como se indica en el guión que hay que introducir el identificador para la carrera en el main, esta función
+		"simulaCarrera" necesariamente tiene que recibir la lista porque, de lo contrario, el id de la carrera se perdería*/
+		insertaClasificacion(lista, simulaCarrera(carretera, lista));
 
-		std::cout << "Introduzca el identificador para la carrera: ";
-		std::cin >> lista.lista[lista.cont].idCarrera;
-		std::cout << '\n';
-
-		char saltoDeLinea;
-		std::cin.get(saltoDeLinea);
-
-		insertaClasificacion(lista, simulaCarrera(carretera));
-
-		//Si la lista no está todavía llena, las clasificaciones van entrando en la lista de clasificaciones en orden ascendente. En caso contrario, se elimina la primera clasificación de la lista y entra la nueva al final de la lista 
-		if (lista.cont < MAX_CARRERAS - 1) {
+		/*Si la lista no está todavía llena, las clasificaciones van entrando en la lista de clasificaciones en orden
+		ascendente. En caso contrario, se elimina la primera clasificación de la lista y entra la nueva al final de la lista*/
+		if (lista.cont < MAX_CARRERAS) {
 			std::cout << "Clasificacion de la carrera\n" << lista.lista[lista.cont]; //Se imprime la clasificacion en la pantalla
 			++lista.cont;
 		}
 		else std::cout << "Clasificacion de la carrera\n" << lista.lista[MAX_CARRERAS - 1];
 
 
-		//Se guarda la lista de clasificaciones al terminar la simulación
-		if (!guardarListaClasificacion(lista)) std::cout << "ERROR: se necesita acceder a un fichero con nombre \"clasificacion.txt\" para guardar la lista de las clasificaciones de los coches\n";
+
+		//Se guarda la lista de clasificaciones al terminar la simulación en el fichero
+		guardarListaClasificacion(lista);
 
 
 		std::cout << '\n' << char(168) << "Desea realizar otra simulacion (S/N)? ";
@@ -484,15 +477,39 @@ int main() {
 		std::cout << '\n';
 
 		//Si las respuestas son diferentes de "S" y "N" se pregunta al usuario de nuevo
-		while (respOtraSim != "S" && respOtraSim != "N") {
+		while (respOtraSim != 'S' && respOtraSim != 'N') {
 			std::cout << char(168) << "Desea realizar otra simulacion (S/N)? ";
 			std::cin >> respOtraSim;
 			std::cout << '\n';
 		}
 
-	} while (respOtraSim == "S");
 
+		//Se comienza una nueva simulación si se desea hacerlo. De lo contrario, se guarda en "clasificacion.txt" la lista de clasificaciones actual
+		if (respOtraSim == 'S') {
+
+			std::cout << "Introduzca el identificador para la carrera: ";
+			if (lista.cont < MAX_CARRERAS) std::cin >> lista.lista[lista.cont].idCarrera;
+			else std::cin >> lista.lista[0].idCarrera;
+
+			std::cout << '\n';
+
+			char saltoDeLinea;
+			std::cin.get(saltoDeLinea);
+
+			for (int carril = 0; carril < NUM_CARRILES; ++carril) //En cada carril se coloca el coche en la posicion cero
+				iniciaCoche(carretera[carril].coche);
+		}
+		else {
+			std::ofstream archGuardarListaClasf; //Se borra el contenido del fichero
+			archGuardarListaClasf.open("clasificacion.txt");
+
+			for (int c = 0; c < lista.cont; ++c)
+				archGuardarListaClasf << lista.lista[c].idCarrera << '\n' << (archGuardarListaClasf, lista.lista[c]); //Se guarda la lista de clasificaciones actual en el fichero
+
+			archGuardarListaClasf.close();
+		}
+
+	} while (respOtraSim == 'S');
 
 	return 0;
-
 }

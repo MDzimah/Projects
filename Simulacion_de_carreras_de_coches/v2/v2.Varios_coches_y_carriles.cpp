@@ -1,4 +1,6 @@
+
 //Nombre y apellidos: Manuel Kwabenanro Dzimah Castro
+
 
 #include <iostream>
 #include <fstream>
@@ -8,15 +10,14 @@
 #include <ctime>
 
 
-
 //VARIABLES
 const int LONG_CARRETERA = 10,
-MAX_PASOS = 2,
+MAX_PASOS = 3,
 TIEMPO_PARADO = 2,
 NUM_CARRILES = 3,
 MAX_CARRERAS = 3;
 
-const bool DEBUG = false;
+const bool DEBUG = true;
 
 const char CHAR_LINEA_HORIZONTAL = char(205),
 CHAR_ESQUINA_SUPERIOR_IZQUIERDA = char(201),
@@ -160,13 +161,14 @@ void dibujaLineaHorizontalInferior() {
 
 //Dibujo global de la carretera
 void dibujaCarretera(const tCarretera carretera, int posCocche) {
+
 	dibujaLineaHorizontalSuperior();
+
 	for (int carril = 0; carril < NUM_CARRILES; ++carril) {
 		dibujaCarril(carretera[carril]);
-		//std::cout << "(Carril " << carril << ")\n"; Para facilitar la lectura de la simulación
 		if (carril < NUM_CARRILES - 1) dibujaLineaDiscontinua();
-
 	}
+
 	dibujaLineaHorizontalInferior();
 }
 
@@ -227,6 +229,13 @@ int avanza(int posCoche) {
 		std::cin >> numPasos;
 		std::cout << '\n';
 
+		if (std::cin.fail()) {
+			std::cin.clear();
+			std::cin.ignore();
+			numPasos = 0;
+			std::cout << "No se ha introducido un numero. El coche no avanza\n\n";
+		}
+
 		char saltoDeLinea;
 		std::cin.get(saltoDeLinea);
 
@@ -251,9 +260,10 @@ bool calculaPosicion(tCarril& carril) {
 	de modificarla. De este modo, al volver a la funcion "avanzaCarril", "calculaPosicion" es "true" y se dibuja la carretera correspondiente en lugar de saltarlo*/
 	posOriginCoche = carril.coche.pos;
 
-	if (esClavo(carril.posiciones, carril.coche.pos) && carril.coche.tiempoParado == 0) carril.coche.tiempoParado = TIEMPO_PARADO; //Para que un coche ya pinchado en un turno anterior no vuelva a estar inmovilizado "TIEMPO_PARADO" de turnos, se añade la condición de que el tiempoParado de coche ha de ser 0 necesariamente
+	if (esClavo(carril.posiciones, carril.coche.pos) && carril.coche.tiempoParado == 0) carril.coche.tiempoParado = TIEMPO_PARADO + 1; //Para que un coche ya pinchado en un turno anterior no vuelva a estar inmovilizado "TIEMPO_PARADO" de turnos, se añade la condición de que el tiempoParado de coche ha de ser 0 necesariamente
 	else if (esSorpresa(carril.posiciones, carril.coche.pos)) {
-		int incremento = 0; //Lo inicializo a 1 en lugar de 0 ya que será de utilidad si estamos en modo debug
+
+		int incremento = 1; //Lo inicializo a 1 en lugar de a 0 ya que será de utilidad si estamos en modo debug
 
 		if (!DEBUG) {
 			incremento = rand() % 2;
@@ -268,19 +278,18 @@ bool calculaPosicion(tCarril& carril) {
 			std::cout << char(168) << "Desea avanzar o retroceder hacia la posicion de la sorpresa mas cercana (1/-1)? ";
 			std::cin >> respModoDebug;
 
-			char saltoDeLinea;
-			std::cin.get(saltoDeLinea); //Evita que el salto de línea al introducir la respuesta se capte en la función "avanza"
-			std::cout << '\n';
-
-
 			//Si las respuestas son diferentes de "1" y "-1" se pregunta al usuario de nuevo
 			while (respModoDebug != "1" && respModoDebug != "-1") {
 				std::cout << char(168) << "Desea avanzar o retroceder hacia la posicion de la sorpresa mas cercana (1/-1)? ";
 				std::cin >> respModoDebug;
-				std::cin.get(saltoDeLinea);
 				std::cout << '\n';
 			}
-			if (respModoDebug == "0") --incremento;
+
+			char saltoDeLinea;
+			std::cin.get(saltoDeLinea); //Evita que el salto de línea al introducir la respuesta se capte en la función "avanza"
+			std::cout << '\n';
+
+			if (respModoDebug == "-1") incremento -= 2;
 
 		}
 
@@ -288,7 +297,7 @@ bool calculaPosicion(tCarril& carril) {
 
 		std::cout << "POSICION SORPRESA ";
 
-		if (carril.coche.pos == 0) std::cout << ":( " << char(173) << "Empiezas de nuevo!";
+		if (carril.coche.pos == 0) std::cout << ":( Empiezas de nuevo";
 		else if (incremento == 1) std::cout << ":) " << char(173) << "Has tenido suerte! Vas a avanzar a la posicion " << carril.coche.pos;
 		else std::cout << ":( " << char(173) << "Mala suerte! Vas a retroceder a la posicion " << carril.coche.pos;
 
@@ -307,12 +316,9 @@ bool avanzaCarril(tCarretera carretera, int i) {
 
 	std::cout << std::setw(120) << std::setfill('-') << "-\n\n"; //Para facilitar la lectura de la simulación
 
-	std::cout << "TURNO DEL CARRIL " << i << "\n\n";
+	std::cout << "CARRIL " << i << "\n\n";
 
-	if (!haLlegado(carretera[i].coche.pos) && carretera[i].coche.tiempoParado == 0) {
-
-		carretera[i].coche.pos = avanza(carretera[i].coche.pos); //Se actualiza la posición del coche
-	}
+	if (!haLlegado(carretera[i].coche.pos) && carretera[i].coche.tiempoParado == 0) carretera[i].coche.pos = avanza(carretera[i].coche.pos); //Se actualiza la posición del coche
 
 	if (haLlegado(carretera[i].coche.pos)) {
 		carretera[i].coche.pos = LONG_CARRETERA;
@@ -326,6 +332,7 @@ bool avanzaCarril(tCarretera carretera, int i) {
 		Si no es ninguna de las dos, indirectamente se analiza la posción como normal invocando de nuevo a "avanzaCarril" desde "simulaCarrera" */
 
 		if (esClavo(carretera[i].posiciones, carretera[i].coche.pos) || carretera[i].coche.tiempoParado > 0) { //Evalúo primero si la posición en cuestión es "clavo" para evitar llamar a "calculaPosicion" inecesariamente
+
 			calculaPosicion(carretera[i]);
 
 			char respuestaModoNormal;
@@ -340,13 +347,18 @@ bool avanzaCarril(tCarretera carretera, int i) {
 				std::cout << '\n';
 			}
 
-			if (carretera[i].coche.tiempoParado == TIEMPO_PARADO) std::cout << "El coche se ha pinchado. Va estar " << TIEMPO_PARADO << " turnos sin moverse...\n\n";
-			else {
-				if (carretera[i].coche.tiempoParado > 1) std::cout << "Coche en carril " << i << " pinchado. Va a estar " << carretera[i].coche.tiempoParado << " turnos sin moverse...\n\n";
-				else std::cout << "Coche en carril " << i << " pinchado. Va a estar " << carretera[i].coche.tiempoParado << " turno sin moverse...\n\n";
+			if (carretera[i].coche.tiempoParado == TIEMPO_PARADO + 1) {
+				if (TIEMPO_PARADO == 1) std::cout << "El coche se ha pinchado. Va estar " << carretera[i].coche.tiempoParado - 1 << " turno sin moverse (sin incluir este)...";
+				else std::cout << "El coche se ha pinchado. Va estar " << carretera[i].coche.tiempoParado - 1 << " turnos sin moverse (sin incluir este)...";
 			}
-
+			else {
+				if (carretera[i].coche.tiempoParado > 1) std::cout << "Coche en carril " << i << " pinchado. Le quedan " << carretera[i].coche.tiempoParado << " turnos para moverse...";
+				else std::cout << "Coche en carril " << i << " pinchado. Le queda " << carretera[i].coche.tiempoParado << " turno para moverse...";
+			}
 			--carretera[i].coche.tiempoParado;
+
+			std::cout << "\n\n";
+
 		}
 		else if (calculaPosicion(carretera[i])) {
 
@@ -383,6 +395,7 @@ void avanzaCarriles(tCarretera carretera, tClasificacion& clasificacion) {
 
 //Mantiene la simulación en curso solo si todos los coches no han llegado al final
 tClasificacion simulaCarrera(tCarretera carretera, tListaClasificacion& lista) {
+
 	dibujaCarretera(carretera, carretera->coche.pos);
 
 	tClasificacion clasificacion;
@@ -391,8 +404,8 @@ tClasificacion simulaCarrera(tCarretera carretera, tListaClasificacion& lista) {
 	if (lista.cont < MAX_CARRERAS)
 		clasificacion.idCarrera = lista.lista[lista.cont].idCarrera;
 	else clasificacion.idCarrera = lista.lista[0].idCarrera;
-	/*Cuando la lista de clasificaciones está llena, se guarda el índice de la carrera que va a ser simulada en el carril 0 de las listas de
-	clasificaciones ya que el carril 0 será borrado posteriormente de las listas de clasificaciones*/
+	/*Cuando la lista de clasificaciones está llena, se guarda el índice de la carrera que va a ser simulada en el índice
+	0 de las listas de clasificaciones ya que el carril 0 será borrado posteriormente de las listas de clasificaciones*/
 
 	while (clasificacion.cont < NUM_CARRILES) avanzaCarriles(carretera, clasificacion);
 
@@ -404,7 +417,7 @@ tClasificacion simulaCarrera(tCarretera carretera, tListaClasificacion& lista) {
 std::ostream& operator<<(std::ostream& salida, tClasificacion const& cl) {
 
 	for (int y = 0; y < NUM_CARRILES; ++y)
-		salida << "    Puesto " << y + 1 << ": coche del carril " << cl.clasificacion[y] << '\n';
+		salida << "    Puesto " << y + 1 << ": coche en el carril " << cl.clasificacion[y] << '\n';
 
 	return salida;
 }
@@ -430,14 +443,23 @@ void insertaClasificacion(tListaClasificacion& listaC, const tClasificacion& cla
 void guardarListaClasificacion(const tListaClasificacion& listaC) {
 
 	std::ofstream archGuardarListaClasf;
-	archGuardarListaClasf.open("clasificacion.txt", std::ios::app);
 
-	if (listaC.cont < MAX_CARRERAS)
-		archGuardarListaClasf << listaC.lista[listaC.cont - 1].idCarrera << '\n' << (archGuardarListaClasf, listaC.lista[listaC.cont - 1]);
-	else archGuardarListaClasf << listaC.lista[MAX_CARRERAS - 1].idCarrera << '\n' << (archGuardarListaClasf, listaC.lista[MAX_CARRERAS - 1]);
+	/*Si la lista de clasificaciones se está llenando, se añade sucesivamente a "clasificacion.txt" las clasificaciones
+	de las carreras. Una vez se llene la lista, no queda  se guarda cada vez en "clasificacion.txt" la lista de clasificaciones entera*/
+	if (listaC.cont < MAX_CARRERAS) {
+		archGuardarListaClasf.open("clasificacion.txt", std::ios::app);
+		archGuardarListaClasf << listaC.lista[listaC.cont].idCarrera << '\n' << (archGuardarListaClasf, listaC.lista[listaC.cont]);
+	}
+	else {
+		archGuardarListaClasf.open("clasificacion.txt");
+		for (int p = 0; p < MAX_CARRERAS; ++p)
+			archGuardarListaClasf << listaC.lista[p].idCarrera << '\n' << (archGuardarListaClasf, listaC.lista[p]);
+	}
 
 	archGuardarListaClasf.close();
+
 }
+
 
 
 int main() {
@@ -448,76 +470,65 @@ int main() {
 	tListaClasificacion lista;
 	iniciaListaClasificacion(lista);
 
-	std::cout << "\nIntroduzca el identificador para la carrera: ";
-	std::cin >> lista.lista[lista.cont].idCarrera;
-	std::cout << '\n';
+	std::string respOtraSim;
 
-	char saltoDeLinea;
-	std::cin.get(saltoDeLinea);
-
-	char respOtraSim;
+	//Se abre el fichero "clasificacion.txt" y se vacía su contenido
+	std::ofstream archGuardarListaClasf;
+	archGuardarListaClasf.open("clasificacion.txt");
 
 	do {
 		srand(time(NULL));
+		char saltoDeLinea;
+
+		std::cout << "\nIntroduzca el identificador para la carrera: ";
+
+		if (lista.cont < MAX_CARRERAS) std::getline(std::cin, lista.lista[lista.cont].idCarrera);
+		else std::getline(std::cin, lista.lista[0].idCarrera);
+
+		std::cout << '\n';
 
 		/* Como se indica en el guión que hay que introducir el identificador para la carrera en el main, esta función
 		"simulaCarrera" necesariamente tiene que recibir la lista porque, de lo contrario, el id de la carrera se perdería*/
-		insertaClasificacion(lista, simulaCarrera(carretera, lista));
 
-		std::cout << "FIN DE LA SIMULACION\n\n";
+		insertaClasificacion(lista, simulaCarrera(carretera, lista));
 
 		/*Si la lista no está todavía llena, las clasificaciones van entrando en la lista de clasificaciones en orden
 		ascendente. En caso contrario, se elimina la primera clasificación de la lista y entra la nueva al final de la lista*/
+
+		std::cout << "FIN DE LA SIMULACION\n\n";
+
+		//Se imprime la clasificación de la carrera en la pantalla y se guarda la lista de clasificaciones en el fichero "clasificacion.txt"
 		if (lista.cont < MAX_CARRERAS) {
-			std::cout << "Clasificacion de la carrera\n" << lista.lista[lista.cont]; //Se imprime la clasificacion en la pantalla
+			std::cout << "Clasificacion de la carrera\n" << lista.lista[lista.cont];
+			guardarListaClasificacion(lista);
 			++lista.cont;
 		}
-		else std::cout << "Clasificacion de la carrera\n" << lista.lista[MAX_CARRERAS - 1];
-
-
-
-		//Se guarda la lista de clasificaciones al terminar la simulación en el fichero
-		guardarListaClasificacion(lista);
+		else {
+			std::cout << "Clasificacion de la carrera\n" << lista.lista[MAX_CARRERAS - 1];
+			guardarListaClasificacion(lista);
+		}
 
 
 		std::cout << '\n' << char(168) << "Desea realizar otra simulacion (S/N)? ";
 		std::cin >> respOtraSim;
-		std::cout << '\n';
 
 		//Si las respuestas son diferentes de "S" y "N" se pregunta al usuario de nuevo
-		while (respOtraSim != 'S' && respOtraSim != 'N') {
+		while (respOtraSim != "S" && respOtraSim != "N") {
 			std::cout << char(168) << "Desea realizar otra simulacion (S/N)? ";
 			std::cin >> respOtraSim;
-			std::cout << '\n';
 		}
 
+		std::cout << std::setw(120) << std::setfill(CHAR_LINEA_HORIZONTAL) << CHAR_LINEA_HORIZONTAL << '\n';
 
-		//Se comienza una nueva simulación si se desea hacerlo. De lo contrario, se guarda en "clasificacion.txt" la lista de clasificaciones actual
-		if (respOtraSim == 'S') {
+		std::cin.get(saltoDeLinea);
 
-			std::cout << "Introduzca el identificador para la carrera: ";
-			if (lista.cont < MAX_CARRERAS) std::cin >> lista.lista[lista.cont].idCarrera;
-			else std::cin >> lista.lista[0].idCarrera;
-
-			std::cout << '\n';
-
-			char saltoDeLinea;
-			std::cin.get(saltoDeLinea);
-
-			for (int carril = 0; carril < NUM_CARRILES; ++carril) //En cada carril se coloca el coche en la posicion cero
-				iniciaCoche(carretera[carril].coche);
-		}
-		else {
-			std::ofstream archGuardarListaClasf; //Se borra el contenido del fichero
-			archGuardarListaClasf.open("clasificacion.txt");
-
-			for (int c = 0; c < lista.cont; ++c)
-				archGuardarListaClasf << lista.lista[c].idCarrera << '\n' << (archGuardarListaClasf, lista.lista[c]); //Se guarda la lista de clasificaciones actual en el fichero
-
-			archGuardarListaClasf.close();
+		//Se inicializan los coches de todos los carriles
+		if (respOtraSim == "S") {
+			for (int n = 0; n < NUM_CARRILES; ++n)
+				iniciaCoche(carretera[n].coche);
 		}
 
-	} while (respOtraSim == 'S');
+	} while (respOtraSim == "S");
 
 	return 0;
 }

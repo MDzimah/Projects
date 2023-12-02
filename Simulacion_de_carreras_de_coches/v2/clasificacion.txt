@@ -1,8 +1,1 @@
-pepe
-   Puesto 1:  Coche en el carril 1
-   Puesto 2:  Coche en el carril 2
-   Puesto 3:  Coche en el carril 3
-papa
-   Puesto 1:  Coche en el carril 1
-   Puesto 2:  Coche en el carril 2
-   Puesto 3:  Coche en el carril 3
+

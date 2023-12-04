@@ -1,4 +1,3 @@
-
 //Nombre y apellidos: Manuel Kwabenanro Dzimah Castro
 
 
@@ -104,10 +103,10 @@ bool cargaCarretera(tCarretera& carriles) {
 	std::ifstream entrada;
 	entrada.open(nombreDelArchivo);
 
+	//Si se abre el archivo, se cargan los datos en "carretera" y se devuelve "true". De lo contrario, se informa del error, se devuelve "false" y se da al usuario otra oportunidad
+	if (entrada.is_open()) { 
 
-	if (entrada.is_open()) { //Si se abre el archivo, se cargan los datos en "carretera" y se devuelve "true". De lo contrario, se informa del error, se devuelve "false" y se da al usuario otra oportunidad
-
-		//En cada vuelta se inicializa un carril y se cargan los datos leídos del fichero
+		//En cada vuelta se inicializa un carril y se cargan los datos leídos del fichero a cada carril
 		for (int i = 0; i < NUM_CARRILES; ++i) {
 			iniciaCarril(carriles[i]);
 			leeCarril(entrada, carriles[i]);
@@ -153,7 +152,10 @@ void dibujaLineaDiscontinua() {
 
 	std::cout << CHAR_LINEA_VERTICAL;
 	for (int v = 0; v < LONG_CARRETERA / 2; ++v) std::cout << CHAR_LINEA_HORIZONTAL << ' ';
-	std::cout << CHAR_LINEA_VERTICAL << '\n';
+
+	if (LONG_CARRETERA % 2 == 0) std::cout << CHAR_LINEA_VERTICAL << '\n';
+	else std::cout << CHAR_LINEA_HORIZONTAL << CHAR_LINEA_VERTICAL << '\n';
+
 }
 void dibujaLineaHorizontalInferior() {
 	std::cout << CHAR_ESQUINA_INFERIOR_IZQUIERDA << std::setw(LONG_CARRETERA) << std::setfill(CHAR_LINEA_HORIZONTAL) << CHAR_LINEA_HORIZONTAL << CHAR_ESQUINA_INFERIOR_DERECHA << "\n\n";
@@ -297,7 +299,7 @@ bool calculaPosicion(tCarril& carril) {
 
 		std::cout << "POSICION SORPRESA ";
 
-		if (carril.coche.pos == 0) std::cout << ":( Empiezas de nuevo";
+		if (carril.coche.pos == 0) std::cout << ":( " << char(173) << "Vaya, no hay sorpresas en tu camino! Empiezas de nuevo";
 		else if (incremento == 1) std::cout << ":) " << char(173) << "Has tenido suerte! Vas a avanzar a la posicion " << carril.coche.pos;
 		else std::cout << ":( " << char(173) << "Mala suerte! Vas a retroceder a la posicion " << carril.coche.pos;
 
@@ -394,18 +396,16 @@ void avanzaCarriles(tCarretera carretera, tClasificacion& clasificacion) {
 }
 
 //Mantiene la simulación en curso solo si todos los coches no han llegado al final
-tClasificacion simulaCarrera(tCarretera carretera, tListaClasificacion& lista) {
-
-	dibujaCarretera(carretera, carretera->coche.pos);
+tClasificacion simulaCarrera(tCarretera carretera) {
 
 	tClasificacion clasificacion;
 	clasificacion.cont = 0;
 
-	if (lista.cont < MAX_CARRERAS)
-		clasificacion.idCarrera = lista.lista[lista.cont].idCarrera;
-	else clasificacion.idCarrera = lista.lista[0].idCarrera;
-	/*Cuando la lista de clasificaciones está llena, se guarda el índice de la carrera que va a ser simulada en el índice
-	0 de las listas de clasificaciones ya que el carril 0 será borrado posteriormente de las listas de clasificaciones*/
+	std::cout << "\nIntroduzca el identificador para la carrera: ";
+
+	std::getline(std::cin, clasificacion.idCarrera);
+
+	dibujaCarretera(carretera, carretera->coche.pos);
 
 	while (clasificacion.cont < NUM_CARRILES) avanzaCarriles(carretera, clasificacion);
 
@@ -430,6 +430,9 @@ void eliminaClasificacion(tListaClasificacion& listaC, int pos) {
 	for (int b = pos; b < MAX_CARRERAS - 1; ++b) listaC.lista[b] = listaC.lista[b + 1];
 }
 void insertaClasificacion(tListaClasificacion& listaC, const tClasificacion& clasificacion) {
+
+	/*Si la lista no está todavía llena, las clasificaciones van entrando en la lista de clasificaciones en orden
+	ascendente. En caso contrario, se elimina la primera clasificación de la lista y entra la nueva al final de la lista*/
 
 	if (listaC.cont < MAX_CARRERAS)
 		listaC.lista[listaC.cont] = clasificacion;
@@ -461,7 +464,6 @@ void guardarListaClasificacion(const tListaClasificacion& listaC) {
 }
 
 
-
 int main() {
 
 	tCarretera carretera;
@@ -472,7 +474,7 @@ int main() {
 
 	std::string respOtraSim;
 
-	//Se abre el fichero "clasificacion.txt" y se vacía su contenido
+	//Se abre el fichero "clasificacion.txt" y se vacía su contenido cada vez que se hace una nueva simulación
 	std::ofstream archGuardarListaClasf;
 	archGuardarListaClasf.open("clasificacion.txt");
 
@@ -480,24 +482,11 @@ int main() {
 		srand(time(NULL));
 		char saltoDeLinea;
 
-		std::cout << "\nIntroduzca el identificador para la carrera: ";
-
-		if (lista.cont < MAX_CARRERAS) std::getline(std::cin, lista.lista[lista.cont].idCarrera);
-		else std::getline(std::cin, lista.lista[0].idCarrera);
-
-		std::cout << '\n';
-
-		/* Como se indica en el guión que hay que introducir el identificador para la carrera en el main, esta función
-		"simulaCarrera" necesariamente tiene que recibir la lista porque, de lo contrario, el id de la carrera se perdería*/
-
-		insertaClasificacion(lista, simulaCarrera(carretera, lista));
-
-		/*Si la lista no está todavía llena, las clasificaciones van entrando en la lista de clasificaciones en orden
-		ascendente. En caso contrario, se elimina la primera clasificación de la lista y entra la nueva al final de la lista*/
+		insertaClasificacion(lista, simulaCarrera(carretera));
 
 		std::cout << "FIN DE LA SIMULACION\n\n";
 
-		//Se imprime la clasificación de la carrera en la pantalla y se guarda la lista de clasificaciones en el fichero "clasificacion.txt"
+		/*Se imprime la clasificación de la carrera en la pantalla y se guarda la lista de clasificaciones en el fichero "clasificacion.txt" */
 		if (lista.cont < MAX_CARRERAS) {
 			std::cout << "Clasificacion de la carrera\n" << lista.lista[lista.cont];
 			guardarListaClasificacion(lista);

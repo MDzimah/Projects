@@ -9,7 +9,7 @@
 #include <ctime>
 
 
-//CONSTANTES/VARIABLES
+//CONSTANTES y VARIABLES
 
 const int LONG_CARRETERA = 10,
 MAX_PASOS = 3,
@@ -450,8 +450,8 @@ void guardarListaClasificacion(const tListaClasificacion& listaC) {
 
 	std::ofstream archGuardarListaClasf;
 
-	/*Si la lista de clasificaciones se está llenando, se añade sucesivamente a "clasificacion.txt" las clasificaciones
-	de las carreras. Una vez se llene la lista, no queda  se guarda cada vez en "clasificacion.txt" la lista de clasificaciones entera*/
+	/*Si la lista de clasificaciones se está llenando, las clasificaciones de las carreras son añadidas sucesivamente a "clasificacion.txt".
+	Cuando la lista se llena completamente, no queda más remedio que, en cada carrera sucesiva de la simulación, guardar la lista de clasificaciones entera en "clasificacion.txt"*/
 	if (listaC.cont < MAX_CARRERAS) {
 		archGuardarListaClasf.open("clasificacion.txt", std::ios::app);
 		archGuardarListaClasf << listaC.lista[listaC.cont].idCarrera << '\n' << (archGuardarListaClasf, listaC.lista[listaC.cont]);

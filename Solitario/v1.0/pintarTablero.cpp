@@ -50,7 +50,7 @@ void Colores::pinta_centro_celda(int fila)  {
       // el color de fondo depende del contenido
       color_fondo(tab.valorCeldas(fila, k));
 
-      if (fila == Fmeta && k == Cmeta) { // meta
+      if (fila == Fmeta-1 && k == Cmeta-1) { // meta
          std::cout << YELLOW;
          std::cout << "  " << char(219) << char(219) << "  ";
       }

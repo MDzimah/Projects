@@ -8,7 +8,10 @@ enum Direccion { ARRIBA, ABAJO, IZQUIERDA, DERECHA, INDETERMINADA };
 std::string to_string(Direccion d);
 class Movimiento {
 public:
-	Movimiento(int f, int c) : fil(f), col(c), cont(0) {}
+	Movimiento(int f, int c) : fil(f), col(c), cont(0), activa(INDETERMINADA) {
+		for (int i = 0; i < NUMDIR; ++i)
+			direcciones[i] = INDETERMINADA;
+	}
 	int fila() const { return fil; }
 	int columna() const { return col; }
 	Direccion dir_activa() const { return activa; }
@@ -19,7 +22,6 @@ public:
 private:
 	int fil;
 	int col;
-	int numFichas;
 	Direccion activa; // de todas las direcciones posibles, contiene la dirección
 	// activa, i.e., la dirección que se va a ejecutar
 	int cont; // número de direcciones a las que se puede mover

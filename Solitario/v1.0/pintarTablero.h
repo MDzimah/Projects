@@ -39,15 +39,15 @@ const int DEFAULT_COLOR = -1;
 
 class Colores {
 public:
-	Colores(Tablero tablero, int f_meta, int c_meta) : tab(tablero), Fmeta(f_meta), Cmeta(c_meta) {}
+	Colores(Tablero tablero/*ent*/, int f_meta/*ent*/, int c_meta/*ent*/) : tab(tablero), Fmeta(f_meta), Cmeta(c_meta) {}
 	void pintar();
 private:
 	Tablero tab;
 	int Fmeta, Cmeta;
-	void color_fondo(int color);
+	void color_fondo(int color/*ent*/);
 	void pinta_cabecera();
-	void pinta_linea(char esquinaIzda, char cruce, char esquinaDer);
-	void pinta_borde_celda(int fila);
-	void pinta_centro_celda(int fila);
+	void pinta_linea(char esquinaIzda/*ent*/, char cruce/*ent*/, char esquinaDer/*ent*/);
+	void pinta_borde_celda(int fila/*ent*/);
+	void pinta_centro_celda(int fila/*ent*/);
 };
 

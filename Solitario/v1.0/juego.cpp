@@ -25,6 +25,7 @@ bool Juego::cargar(std::istream& entrada) {
 	entrada >> f_meta >> c_meta;
 	++f_meta;
 	++c_meta;
+	//Para que la posición meta sea coherente con el sistema de referencia escogido (1,1) ~ (0,0)
 
 	estado_int = JUGANDO;
 
@@ -121,7 +122,8 @@ Juego::Juego (int movimientos) : estado_int(BLOQUEO), tablero(0,0,NULA) {
 	Movimiento mov(cor.f, cor.c);
 	posibles_mov_inverso(mov);
 
-	int opDireccion = mov.direccion(elegir_dir_aleatoria(mov)); //De la lista de direcciones del movimiento inverso se elige una aleatoriamente
+	//De la lista de direcciones del movimiento inverso se elige una aleatoriamente
+	int opDireccion = mov.direccion(elegir_dir_aleatoria(mov)); 
 
 	tablero.escribir(cor.f, cor.c, VACIA, true);
 
@@ -136,7 +138,6 @@ Juego::Juego (int movimientos) : estado_int(BLOQUEO), tablero(0,0,NULA) {
 	posFichas.push_back(cor);
 	posFichasMovInv.push_back(cor);
 	tablero.escribir(cor.f, cor.c, FICHA, true);
-	//
 
 	/*Observación: que el algoritmo haga todos los "pasos" depende 
 	del tamaño del tablero y de la selección aleatoria de las fichas*/
@@ -183,7 +184,6 @@ Juego::Juego (int movimientos) : estado_int(BLOQUEO), tablero(0,0,NULA) {
 void Juego::posibles_mov_inverso(Movimiento& mov) const {
 
 	//Para una posición con ficha se calculan los movimientos inversos posibles
-
 	for (int i = 0; i < 4; ++i) {
 		int posicionF = mov.fila() + dirs[i].first;
 		int posicionC = mov.columna() + dirs[i].second;
@@ -197,6 +197,7 @@ void Juego::posibles_mov_inverso(Movimiento& mov) const {
 			(tablero.leer(posicionF, posicionC, true) == NULA && tablero.leer(posicionF + dirs[i].first, posicionC + dirs[i].second, true) == NULA)
 			||
 			(tablero.leer(posicionF, posicionC, true) == VACIA && tablero.leer(posicionF + dirs[i].first, posicionC + dirs[i].second, true) == NULA)
+				//Hay dos formas de realizar un movimiento inverso como mostrado en el guión
 			)
 		   )
 		{

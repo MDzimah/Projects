@@ -2,14 +2,14 @@
 #include <string>
 #include <fstream>
 
-bool string_es_num(std::string& const s) {
+bool string_es_num(std::string const& s /*ent*/) {
 	for (int i = 0; i < s.size(); ++i)
 		if (!std::isdigit(s[i])) return false;
 
 	return true;
 }
 
-bool mostrar_posibilidades_y_fijar_dir_activa(Movimiento& mov) {
+bool mostrar_posibilidades_y_fijar_dir_activa(Movimiento& mov /*ent/sal*/) {
 
 	if (mov.num_dirs() > 1) {
 		std::cout << "Seleccione una direccion\n";
@@ -38,7 +38,7 @@ bool mostrar_posibilidades_y_fijar_dir_activa(Movimiento& mov) {
 	}
 }
 
-void simulacion_juego(Juego &sol) {
+void simulacion_juego(Juego &sol/*ent/sal*/) {
 
 	do {
 		sol.mostrar();
@@ -79,14 +79,10 @@ void simulacion_juego(Juego &sol) {
 
 	sol.mostrar();
 
-	if (sol.estado() == GANADOR) std::cout  << "\n\t" << LGREEN << char(173) << "Enhorabuena! Has ganado :)\n\n";
-	else std::cout << "\n\t" << RED << char(173) << "GAME OVER! Te has quedado bloqueado\n\n";
+	if (sol.estado() == GANADOR) std::cout  << '\n' << LGREEN << char(173) << "Enhorabuena! Has ganado :)\n\n";
+	else std::cout << '\n' << RED << char(173) << "GAME OVER! Te has quedado bloqueado\n\n";
 
 	std::cout << WHITE;
-
-	//Para que el salto de línea no sea captado por el "getline" del final del programa
-	char aux;
-	std::cin.get(aux);
 }
 
 int main() {
@@ -133,13 +129,15 @@ int main() {
 		else { //Si se quiere jugar sobre un tablero aleatorio
 			
 			std::string pasos;
-			std::cout << "Indique el numero de pasos para crear el tablero aleatorio: ";
+			std::cout << "Indique el numero de pasos para crear el tablero aleatorio (puedes escribir \"MAX\"): ";
 			std::getline(std::cin, pasos);
+			if (pasos == "MAX") pasos = "777";
 			std::cout << '\n';
 
 			while (!string_es_num(pasos) || std::stoi(pasos) <= 0) {
-				std::cout << "Indique el numero de pasos para crear el tablero aleatorio: ";
+				std::cout << "Indique el numero de pasos para crear el tablero aleatorio (puedes escribir \"MAX\"): ";
 				std::getline(std::cin, pasos);
+				if (pasos == "MAX") pasos = "777";
 				std::cout << '\n';
 			}
 

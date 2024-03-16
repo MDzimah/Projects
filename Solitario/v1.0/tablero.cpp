@@ -4,7 +4,6 @@
 
 bool Tablero::correcta(int f, int c, bool op) const {
 	--f; --c;
-	//Utilizo una variable bool para el caso de generar un tablero aleatorio
 	if (!op) {
 		return f >= 0 && f < filas && c >= 0 && c < columnas && celdas[f][c] != NULA;
 	}

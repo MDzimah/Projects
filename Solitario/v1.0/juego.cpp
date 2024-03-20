@@ -20,7 +20,7 @@ bool Juego::cargar(std::istream& entrada) {
 				posFichas.push_back(cor);
 			}
 
-			tablero.escribir(f, c, tablero.conv_intAenum(val), true);
+			tablero.escribir(f, c, tablero.conv_intAenum(val));
 		}
 	entrada >> f_meta >> c_meta;
 	++f_meta;
@@ -33,7 +33,7 @@ bool Juego::cargar(std::istream& entrada) {
 }
 
 bool Juego::posicion_valida(int f, int c) const {
-	return tablero.leer(f, c, false) == FICHA;
+	return tablero.correcta(f,c) && tablero.leer(f, c) == FICHA;
 }
 
 void Juego::posibles_movimientos(Movimiento& mov) const {
@@ -42,15 +42,14 @@ void Juego::posibles_movimientos(Movimiento& mov) const {
 	Tras ello, se analizan las posiciones adyacentes para ver si hay una ficha.
 	Finalmente, se analizan las posiciones adyacentes a las anteriores con igual
 	dirección respecto de la posición inicial para ver si está vacío.*/
-	if (tablero.correcta(mov.fila(), mov.columna(), false) && tablero.leer(mov.fila(), mov.columna(), true) == FICHA) {
+	if (posicion_valida(mov.fila(),mov.columna())) {
 		for (int i = 0; i < 4; ++i) {
 			int posicionF = mov.fila() + dirs[i].first;
 			int posicionC = mov.columna() + dirs[i].second;
 			if (
-				tablero.correcta(posicionF, posicionC, false) &&
-				tablero.correcta(posicionF + dirs[i].first, posicionC + dirs[i].second, false) &&
-				tablero.leer(posicionF, posicionC, false) == FICHA &&
-				tablero.leer(posicionF + dirs[i].first, posicionC + dirs[i].second, false) == VACIA
+				posicion_valida(posicionF,posicionC) &&
+				tablero.correcta(posicionF + dirs[i].first, posicionC + dirs[i].second) &&
+				tablero.leer(posicionF + dirs[i].first, posicionC + dirs[i].second) == VACIA
 				)
 				mov.insertar_dir((Direccion)i);
 		}
@@ -69,20 +68,20 @@ void Juego::ejecuta_movimiento(Movimiento const& mov) {
 	
 	int opDireccion = mov.dir_activa();
 	
-	tablero.escribir(mov.fila(), mov.columna(), VACIA, true);
+	tablero.escribir(mov.fila(), mov.columna(), VACIA);
 	elim_ficha_de_lista_fichas(mov.fila(), mov.columna());
 
 	Coord cor;
 	cor.f = mov.fila() + dirs[opDireccion].first;
 	cor.c = mov.columna() + dirs[opDireccion].second;
 
-	tablero.escribir(cor.f, cor.c, VACIA,true);
+	tablero.escribir(cor.f, cor.c, VACIA);
 	elim_ficha_de_lista_fichas(cor.f, cor.c);
 
 	cor.f += dirs[opDireccion].first;
 	cor.c += dirs[opDireccion].second;
 
-	tablero.escribir(cor.f, cor.c, FICHA, true);
+	tablero.escribir(cor.f, cor.c, FICHA);
 	posFichas.push_back(cor);
 }
 
@@ -93,7 +92,7 @@ void Juego::nuevo_estado() {
 }
 
 bool Juego::hay_ganador() const {
-	return posFichas.size() == 1 && tablero.leer(f_meta, c_meta, true) == FICHA;
+	return posFichas.size() == 1 && posicion_valida(f_meta, c_meta);
 }
 
 bool Juego::hay_movimientos() const {
@@ -125,19 +124,19 @@ Juego::Juego (int movimientos) : estado_int(BLOQUEO), tablero(0,0,NULA) {
 	//De la lista de direcciones del movimiento inverso se elige una aleatoriamente
 	int opDireccion = mov.direccion(elegir_dir_aleatoria(mov)); 
 
-	tablero.escribir(cor.f, cor.c, VACIA, true);
+	tablero.escribir(cor.f, cor.c, VACIA);
 
 	cor.f += dirs[opDireccion].first;
 	cor.c += dirs[opDireccion].second;
 	posFichas.push_back(cor);
 	posFichasMovInv.push_back(cor);
-	tablero.escribir(cor.f, cor.c, FICHA, true);
+	tablero.escribir(cor.f, cor.c, FICHA);
 	
 	cor.f += dirs[opDireccion].first;
 	cor.c += dirs[opDireccion].second;
 	posFichas.push_back(cor);
 	posFichasMovInv.push_back(cor);
-	tablero.escribir(cor.f, cor.c, FICHA, true);
+	tablero.escribir(cor.f, cor.c, FICHA);
 
 	/*Observación: que el algoritmo haga todos los "pasos" depende 
 	del tamaño del tablero y de la selección aleatoria de las fichas*/
@@ -154,19 +153,19 @@ Juego::Juego (int movimientos) : estado_int(BLOQUEO), tablero(0,0,NULA) {
 		if (movi.num_dirs() > 0) {
 			opDireccion = movi.direccion(elegir_dir_aleatoria(movi));
 
-			tablero.escribir(posFichasMovInv[posFicha].f, posFichasMovInv[posFicha].c, VACIA, true);
+			tablero.escribir(posFichasMovInv[posFicha].f, posFichasMovInv[posFicha].c, VACIA);
 			
 			cor.f = posFichasMovInv[posFicha].f + dirs[opDireccion].first;
 			cor.c = posFichasMovInv[posFicha].c + dirs[opDireccion].second;
 			posFichas.push_back(cor);
 			posFichasMovInv.push_back(cor);
-			tablero.escribir(cor.f, cor.c, FICHA, true);
+			tablero.escribir(cor.f, cor.c, FICHA);
 
 			cor.f += dirs[opDireccion].first;
 			cor.c += dirs[opDireccion].second;
 			posFichas.push_back(cor);
 			posFichasMovInv.push_back(cor);
-			tablero.escribir(cor.f, cor.c, FICHA, true);
+			tablero.escribir(cor.f, cor.c, FICHA);
 
 			elim_ficha_de_lista_fichas(posFichasMovInv[posFicha].f, posFichasMovInv[posFicha].c);
 			elim_ficha_de_lista_fichas_mov_inv(posFichasMovInv[posFicha].f, posFichasMovInv[posFicha].c);
@@ -189,19 +188,19 @@ void Juego::posibles_mov_inverso(Movimiento& mov) const {
 		int posicionC = mov.columna() + dirs[i].second;
 		if (
 			(
-			tablero.correcta(posicionF, posicionC, true) && 
-			tablero.correcta(posicionF + dirs[i].first, posicionC + dirs[i].second, true)
+			tablero.correcta(posicionF, posicionC) && 
+			tablero.correcta(posicionF + dirs[i].first, posicionC + dirs[i].second)
 			) 
 			&& 
 			(
-			(tablero.leer(posicionF, posicionC, true) == NULA && tablero.leer(posicionF + dirs[i].first, posicionC + dirs[i].second, true) == NULA)
+			(tablero.leer(posicionF, posicionC) == NULA && tablero.leer(posicionF + dirs[i].first, posicionC + dirs[i].second) == NULA)
 			||
-			(tablero.leer(posicionF, posicionC, true) == VACIA && tablero.leer(posicionF + dirs[i].first, posicionC + dirs[i].second, true) == NULA)
+			(tablero.leer(posicionF, posicionC) == VACIA && tablero.leer(posicionF + dirs[i].first, posicionC + dirs[i].second) == NULA)
 				//Hay dos formas de realizar un movimiento inverso como mostrado en el guión
 			)
 		   )
 		{
-
+			posicion_valida(posicionF, posicionC);
 			mov.insertar_dir((Direccion)i);
 		}
 	}

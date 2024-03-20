@@ -1,7 +1,7 @@
 #pragma
 #include <iostream>
 
-// número de direcciones a considerar
+//número de direcciones a considerar
 const int NUMDIR = 4;
 
 enum Direccion { ARRIBA, ABAJO, IZQUIERDA, DERECHA, INDETERMINADA };

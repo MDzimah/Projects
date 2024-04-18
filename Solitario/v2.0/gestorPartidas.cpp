@@ -4,7 +4,9 @@
 
 GestorPartidas::~GestorPartidas() {
 	for (int i = 0; i < usuarios.size(); ++i) {
-		for (int j = 0; j < usuarios[i]->partidas.size(); ++j) delete usuarios[i]->partidas[j];
+		for (int j = 0; j < usuarios[i]->partidas.size(); ++j) 
+			delete usuarios[i]->partidas[j];
+
 		delete usuarios[i];
 	}
 }
@@ -20,7 +22,7 @@ bool GestorPartidas::cargar(std::istream& entrada) {
 		UsuarioPartidas* u = new UsuarioPartidas;
 		int numPartidasUser;
 		entrada >> u->user >> numPartidasUser;
-		// u->user ~ (*u).user
+		//u->user ~ (*u).user
 
 		while (numPartidasUser > 0) {
 			Juego* puntJ = new Juego;
@@ -46,7 +48,7 @@ bool GestorPartidas::salvar(std::ostream& salida) {
 		salida << usuarios[i]->user << '\n' << usuarios[i]->partidas.size() << '\n';
 
 		for (int j = 0; j < usuarios[i]->partidas.size(); ++j)
-			salida << usuarios[i]->partidas[j]->salvar(salida);
+			usuarios[i]->partidas[j]->salvar(salida);
 	}
 
 	return true;
@@ -108,7 +110,7 @@ bool GestorPartidas::bs(Usuario userID, int &pos) {
 	else return usuarios[d]->user == userID;
 }
 
-void GestorPartidas::insertar(UsuarioPartidas * const& u, int pos) {
+void GestorPartidas::insertar(UsuarioPartidas* const& u, int pos) {
 	usuarios.push_back({});
 	for (int i = usuarios.size() - 1; i > pos; --i)
 		usuarios[i] = usuarios[i - 1];

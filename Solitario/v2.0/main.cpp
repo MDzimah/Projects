@@ -20,7 +20,6 @@ bool leer_movimiento(Juego const& sol /*ent*/, Movimiento &mov /*ent/sal*/) {
 		distintas posibilidades que se tiene para moverse*/
 		sol.posibles_movimientos(mov);
 
-		//Se muestran por pantalla los posibles movimientos a elegir, si los hay
 		if (mov.num_dirs() > 1) {
 			std::cout << "Selecciona una direccion\n";
 			for (int i = 0; i < mov.num_dirs(); ++i)
@@ -79,6 +78,7 @@ bool simulacion_juego(Juego& sol/*ent/sal*/, bool& enCurso) {
 		Movimiento m(std::stoi(f),std::stoi(c));
 		bool movCorrecto = leer_movimiento(sol, m);
 		
+		//Si el movimiento es posible, se ejecuta
 		if (movCorrecto) {
 			sol.jugar(m);
 			system("cls"); //Borrar la consola
@@ -107,10 +107,22 @@ int main() {
 
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); //Para ver si hay "memory leaks"
 
-	std::fstream archivo;
-	archivo.open("partidas.txt");
 	GestorPartidas g;
-	g.cargar(archivo);
+	std::ifstream archivoC;
+	archivoC.open("partidas.txt", std::ios::app);
+
+	if (archivoC.is_open()) {
+		if (!g.cargar(archivoC)) {
+			std::cout << "ERROR: No se pudo leer el documento \"partidas.txt\"\n";
+			archivoC.close();
+			return 0;
+		}
+		archivoC.close();
+	}
+	else {
+		std::cout << "ERROR: No se pudo abrir el documento \"partidas.txt\"\n";
+		return 0;
+	}
 
 	std::cout << "Usuario (teclee \"FIN\" para terminar): ";
 	std::string loginInfo;
@@ -140,7 +152,9 @@ int main() {
 					std::cout << '\n';
 				}
 
-				indPart = g.insertar_aleatoria(std::stoi(pasos)) + 1;
+				/*Se suma 1 porque internamente el código está adaptado a la 
+				elección del usuario, cuyas posibilidades van de 1 hasta "n"*/
+				indPart = g.insertar_aleatoria(std::stoi(pasos)) + 1; 
 			}
 			else indPart = std::stoi(res);
 		}
@@ -171,20 +185,24 @@ int main() {
 
 		if (!seguirJugando) {
 			g.logout();
+			//Por cuestiones estéticas
 			std::cout << "LOGGING OUT";
 			for (int i = 0; i < 3; ++i) {
-				Sleep(400);
+				Sleep(300);
 				std::cout << '.';
 			}
-			Sleep(400);
+			Sleep(250);
+			//
 			system("cls");
 			std::cout << "Usuario (teclee \"FIN\" para terminar): ";
 			std::getline(std::cin, loginInfo);
 		}
 	}
 
-	//Se guarda en el archivo "partidas.txt" las partidas de cada usuario
-	g.salvar(archivo);
-
+	std::ofstream archivoS;
+	archivoS.open("partidas.txt");
+	g.salvar(archivoS);
+	archivoS.close();
+	
 	return 0;
 }

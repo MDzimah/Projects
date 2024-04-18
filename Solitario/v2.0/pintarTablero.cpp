@@ -3,7 +3,6 @@
 #include <iomanip>
 #include "pintarTablero.h"
 
-
 void Colores::color_fondo(int color) {
    if (color == DEFAULT_COLOR)
       std::cout << RESET;

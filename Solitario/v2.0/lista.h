@@ -6,7 +6,11 @@ template <typename T>
 class Lista {
 public:
 	Lista(int N = 0, T vini = T());
-	~Lista() { delete[] datos; datos = nullptr; num_elems = capacidad = 0; }
+	~Lista() { 
+		delete[] datos;
+		datos = nullptr; 
+		num_elems = capacidad = 0; 
+	}
 	T& operator[](int i) { return datos[i]; }
 	T const& operator[](int i) const { return datos[i]; }
 	void push_back(T const& elem);

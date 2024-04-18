@@ -130,7 +130,8 @@ bool Juego::hay_movimientos() const {
 
 Juego::Juego (int movimientos) : estado_int(BLOQUEO), tablero(0,0,NULA) {
 
-	std::vector <Coord> posFichasMovInv; //Lista que guarda las fichas que puedan hacer movimiento inverso
+	//Lista que guarda las fichas que puedan hacer movimiento inverso
+	std::vector <Coord> posFichasMovInv; 
 
 	establecer_tablero_y_pos_meta();
 
@@ -163,7 +164,7 @@ Juego::Juego (int movimientos) : estado_int(BLOQUEO), tablero(0,0,NULA) {
 	del tamaño del tablero y de la selección aleatoria de las fichas*/
 	
 	int i = 1;
-	//Si posFichasMovInv.size() = 0, entonces no hay ninguna ficha que pueda hacer movimientos inversos
+	//Si posFichasMovInv.size() = 0, entonces no hay ninguna ficha que pueda hacer movimientos inversos y se acaba el algoritmo
 	while (i < movimientos && posFichasMovInv.size() > 0) {
 
 		//Mismo código, pero se recurre al método "elegir_pos_ficha_aleatoria()"
@@ -280,6 +281,3 @@ void Juego::mostrar() const {
 	Colores pintarTablero(tablero, f_meta, c_meta);
 	pintarTablero.pintar();
 }
-
-
-

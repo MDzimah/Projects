@@ -31,4 +31,3 @@ private:
 	void pinta_borde_celda(int fila);
 	void pinta_centro_celda(int fila);
 };
-

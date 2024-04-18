@@ -17,4 +17,3 @@ void Tablero::escribir(int f, int c, Celda valor) {
 	--f; --c;
 	celdas[f][c] = valor;
 }
-

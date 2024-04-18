@@ -38,6 +38,6 @@ private:
 	
 	//Para realizar el "login" y "logout"
 	bool bs(Usuario userID, int& pos);
-	void insertar(UsuarioPartidas * const& u, int pos);
+	void insertar(UsuarioPartidas* const& u, int pos);
 	void eliminar_usuario_de_la_lista();
 };

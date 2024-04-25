@@ -14,8 +14,32 @@ bool string_es_num_entero_positivo(std::string const& s /*ent*/) {
 	return true;
 }
 
-bool leer_movimiento(Juego const& sol /*ent*/, Movimiento &mov /*ent/sal*/) {
+Movimiento leer_movimiento(Juego const& sol /*ent*/, char &seguirJugando) {
+	
+	while (true) {
+		std::string f = "", c = "0";
 
+		while (!string_es_num_entero_positivo(f) || !string_es_num_entero_positivo(c)) {
+			std::cout << "\nSelecciona la ficha que quieras mover (fila y columna) o escribe \"0 0\" para salir: ";
+			std::cin >> f;
+			std::cin.get();
+			std::getline(std::cin, c);
+		}
+
+		Movimiento mov(std::stoi(f), std::stoi(c));
+
+		if (f == "0" || c == "0") {
+			while (f != "S" && f != "N") {
+				std::cout << char(168) << "Quieres seguir jugando [S/N]? ";
+				std::getline(std::cin, f);
+				std::cout << '\n';
+			}
+			if (f == "N") seguirJugando = false;
+			else seguirJugando = true;
+
+			return mov;
+		}
+		
 		/*Dada una posición elegida por el usuario, se averigua las
 		distintas posibilidades que se tiene para moverse*/
 		sol.posibles_movimientos(mov);
@@ -35,55 +59,36 @@ bool leer_movimiento(Juego const& sol /*ent*/, Movimiento &mov /*ent/sal*/) {
 			}
 
 			mov.fijar_dir_activa(mov.direccion(std::stoi(dirRespuesta) - 1));
-			return true;
+			return mov;
 		}
 		else if (mov.num_dirs() == 1) {
 			mov.fijar_dir_activa(mov.direccion(0));
-			return true;
+			return mov;
 		}
 		else {
 			if (sol.posicion_valida(mov.fila(), mov.columna())) std::cout << "La ficha seleccionada no se puede mover.\n";
 			else std::cout << "La posicion no es valida o es incorrecta.\n";
-			return false;
 		}
+	}
 }
 
 /*Devuelve "true" si se ha salido de una partida pero se desea seguir jugando. 
-Si no se desea seguir jugando (hacer "logout"), se devuelve false. Además, por
-referencia se obtiene el estado de la partida que se deja, se devuelve "true" si
-la partida está en curso*/
-bool simulacion_juego(Juego& sol/*ent/sal*/, bool& enCurso) {
-
+Si no se desea seguir jugando (hacer "logout"), se devuelve "false".*/
+bool simulacion_juego(Juego& sol/*ent/sal*/) {
 	do {
-		std::string f = "", c = "0";
+		char sJ = -1;
+		//sJ = -1 -> No se ha dado respuesta a "seguir jugando"
+		//sJ = 0 (false) -> El usuario no quiere seguir jugando
+		//sJ = 1 (true) -> El usuario quiere seguir jugando
 
-		while (!string_es_num_entero_positivo(f) || !string_es_num_entero_positivo(c)) {
-			std::cout << "\nSelecciona la ficha que quieras mover (fila y columna) o escribe \"0 0\" para salir: ";
-			std::cin >> f;
-			std::cin.get();
-			std::getline(std::cin, c);
-		}
-		if (f == "0" || c == "0") {
-			while (f != "S" && f != "N") {
-				std::cout << char(168) << "Quieres seguir jugando [S/N]? ";
-				std::getline(std::cin, f);
-				std::cout << '\n';
-			}
-
-			enCurso = true;
-
-			return f == "S";
-		}
-
-		Movimiento m(std::stoi(f),std::stoi(c));
-		bool movCorrecto = leer_movimiento(sol, m);
+		Movimiento m = leer_movimiento(sol, sJ);
 		
-		//Si el movimiento es posible, se ejecuta
-		if (movCorrecto) {
-			sol.jugar(m);
-			system("cls"); //Borrar la consola
-			sol.mostrar();
-		}
+		if (sJ == 0) return false;
+		else if (sJ == 1) return true;
+
+		sol.jugar(m);
+		system("cls"); //Borrar la consola
+		sol.mostrar();
 	} while (sol.estado() == JUGANDO);
 
 	if (sol.estado() == GANADOR) std::cout  << '\n' << LGREEN << char(173) << "ENHORABUENA! Has ganado :)\n\n";
@@ -98,8 +103,6 @@ bool simulacion_juego(Juego& sol/*ent/sal*/, bool& enCurso) {
 		std::cout << '\n';
 	}
 
-	enCurso = false;
-
 	return r == "S";
 }
 
@@ -111,18 +114,13 @@ int main() {
 	std::ifstream archivoC;
 	archivoC.open("partidas.txt", std::ios::app);
 
-	if (archivoC.is_open()) {
-		if (!g.cargar(archivoC)) {
-			std::cout << "ERROR: No se pudo leer el documento \"partidas.txt\"\n";
-			archivoC.close();
-			return 0;
-		}
-		archivoC.close();
-	}
+	if (archivoC.is_open()) g.cargar(archivoC);
 	else {
 		std::cout << "ERROR: No se pudo abrir el documento \"partidas.txt\"\n";
 		return 0;
 	}
+
+	archivoC.close();
 
 	std::cout << "Usuario (teclee \"FIN\" para terminar): ";
 	std::string loginInfo;
@@ -153,7 +151,7 @@ int main() {
 				}
 
 				/*Se suma 1 porque internamente el código está adaptado a la 
-				elección del usuario, cuyas posibilidades van de 1 hasta "n"*/
+				elección del usuario, cuyas posibilidades van de 1 hasta n*/
 				indPart = g.insertar_aleatoria(std::stoi(pasos)) + 1; 
 			}
 			else indPart = std::stoi(res);
@@ -176,12 +174,11 @@ int main() {
 		system("cls"); //Para borrar los tableros que se dan a elegir, si hay
 		g.partida(indPart).mostrar();
 
-		bool enCurso;
-		bool seguirJugando = simulacion_juego(g.partida(indPart), enCurso);
+		bool seguirJugando = simulacion_juego(g.partida(indPart));
 
 		system("cls");
 
-		if (!enCurso) g.eliminar_partida(indPart);
+		if (g.partida(indPart).estado() == BLOQUEO || g.partida(indPart).estado() == GANADOR) g.eliminar_partida(indPart);
 
 		if (!seguirJugando) {
 			g.logout();
@@ -190,6 +187,7 @@ int main() {
 			for (int i = 0; i < 3; ++i) {
 				Sleep(300);
 				std::cout << '.';
+				
 			}
 			Sleep(250);
 			//

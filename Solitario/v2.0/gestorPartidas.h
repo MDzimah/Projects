@@ -37,7 +37,7 @@ private:
 	Lista<UsuarioPartidas*> usuarios; //Lista de todos los usuarios con sus correspondientes partidas
 	
 	//Para realizar el "login" y "logout"
-	bool bs(Usuario userID, int& pos);
+	bool bs(Usuario const& userID, int& pos /*ent/sal*/);
 	void insertar(UsuarioPartidas* const& u, int pos);
 	void eliminar_usuario_de_la_lista();
 };

@@ -9,7 +9,6 @@ public:
 	~Lista() { 
 		delete[] datos;
 		datos = nullptr; 
-		num_elems = capacidad = 0; 
 	}
 	T& operator[](int i) { return datos[i]; }
 	T const& operator[](int i) const { return datos[i]; }

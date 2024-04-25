@@ -94,7 +94,7 @@ void GestorPartidas::eliminar_partida(int part) {
 	usuarios[usuario_activo]->partidas.pop_back();
 }
 
-bool GestorPartidas::bs(Usuario userID, int &pos) {
+bool GestorPartidas::bs(Usuario const& userID, int &pos) {
 	int iz = -1;
 	int d = usuarios.size();
 

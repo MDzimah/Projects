@@ -25,8 +25,6 @@ public class Lemming extends GameObject{
 	
 	public Lemming() { super(); }
 	
-	public Lemming(Position p, GameWorld g){ super(p, g); }
-	
 	//Copy constructor
 	private Lemming(Lemming l, GameWorld g) {
 		/*All game objects must have a reference to the same GameWorld

@@ -17,6 +17,7 @@ public class SetRoleCommand extends ParamsCommand {
 	private static final String HELP = Messages.COMMAND_SET_ROLE_HELP;
 	private LemmingRole lr = null;
 	private final int allowedParams = 3;
+	private int numExtraParams = 0;
 	private int row;
 	private int col;
 	
@@ -36,34 +37,50 @@ public class SetRoleCommand extends ParamsCommand {
 			//Checking whether SetRoleCommand has any parameters at all
 			if (commandWords.length > 1) {
 				this.lr = LemmingRoleFactory.parse(commandWords[1]);
-				
+								
 				//Checking whether it has a valid role
 				if (this.lr != null) {
-					this.setNumParams(commandWords.length-1);
+					StringBuilder extraParams = new StringBuilder();
 					
-					//Checking whether it has the appropriate number of parameters
-					if(this.getNumParams() == this.allowedParams)
-					{
-						//Checking whether it has valid parameters
-						if(commandWords[2].length() == 1 && Character.isLetter(commandWords[2].charAt(0))) 
-						{
-							try {
-							this.col = stringToNumber(commandWords[3])-1;
-							this.row = this.convertLetterToInt(commandWords[2].charAt(0));
-							}
-							catch(NumberFormatException e) {
-								throw new CommandParseException(Messages.INVALID_POSITION); 
-							}
+					//For roles with extra parameters
+					if (commandWords.length > 4) { 
+						extraParams.append(commandWords[2]); ++this.numExtraParams;
+						for (int i = 3; i < commandWords.length - 2; ++i) {
+							extraParams.append(' ').append(commandWords[i]);
+							++this.numExtraParams;
 						}
-						return this;
 					}
-					else throw new CommandParseException(Messages.COMMAND_INCORRECT_PARAMETER_NUMBER);
+					
+					//If it has extra parameters, checking whether they are valid (if it doesn't have extra parameters, true by default)
+					if (this.lr.parseExtraParams(extraParams.toString(), this)) {
+						this.setNumParams(commandWords.length-1);
+						
+						//Checking whether it has the appropriate number of parameters
+						if(this.getNumParams() == this.allowedParams + this.numExtraParams)
+						{
+							//Checking whether it has valid positional parameters
+							if(commandWords[2 + this.numExtraParams].length() == 1 && Character.isLetter(commandWords[2 + this.numExtraParams].charAt(0))) 
+							{
+								try {
+								this.col = stringToNumber(commandWords[3 + this.numExtraParams])-1;
+								this.row = this.convertLetterToInt(commandWords[2 + this.numExtraParams].charAt(0));
+								}
+								catch(NumberFormatException e) {
+									throw new CommandParseException(Messages.INVALID_POSITION); 
+								}
+							}
+							return this;
+						}
+						else throw new CommandParseException(Messages.COMMAND_INCORRECT_PARAMETER_NUMBER);
+					}
+					else throw new CommandParseException (Messages.INVALID_PARAMETERS);
 				}
 				else throw new CommandParseException (Messages.INVALID_PARAMETERS, new CommandParseException(Messages.UNKNOWN_ROLE.formatted(commandWords[1])));
 			}
 		}
 		return null;
 	}
+
 	
 	@Override
 	protected void execute(GameModel g, GameView view) throws CommandExecuteException {
@@ -93,4 +110,6 @@ public class SetRoleCommand extends ParamsCommand {
 		s.append(LemmingRoleFactory.helpText());
 		return s.toString();
 	}
+	
+	public void resetNumExtraCommands() { this.numExtraParams = 0; }
 }

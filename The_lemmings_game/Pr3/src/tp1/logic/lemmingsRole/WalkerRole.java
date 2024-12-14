@@ -35,8 +35,6 @@ public class WalkerRole extends AbstractRole implements LemmingRole {
 	
 	/*---GETTERS---*/
 	
-	private String getName() { return NAME; }
-	
 	public String getSymbol() { return SYMBOL; }
 
 	public String getHelp() { return HELP; }
@@ -51,7 +49,7 @@ public class WalkerRole extends AbstractRole implements LemmingRole {
 	
 	@Override
 	public LemmingRole parse(String s) {
-		if (s.equalsIgnoreCase(this.getName()) || s.equalsIgnoreCase(this.getSymbol())) return this;
+		if (s.equalsIgnoreCase(NAME) || s.equalsIgnoreCase(SYMBOL)) return this;
 		else return null;
 	}	
 

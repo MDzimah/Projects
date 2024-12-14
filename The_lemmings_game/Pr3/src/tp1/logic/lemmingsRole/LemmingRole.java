@@ -1,5 +1,6 @@
 package tp1.logic.lemmingsRole;
 
+import tp1.control.SetRoleCommand;
 import tp1.logic.gameobjects.ExitDoor;
 import tp1.logic.gameobjects.GameItem;
 import tp1.logic.gameobjects.Lemming;
@@ -17,7 +18,10 @@ public interface LemmingRole {
 	/*---CHECKERS---*/
 	
 	public abstract LemmingRole parse(String s);
-	
+	public default boolean parseExtraParams(String s, SetRoleCommand sr) { 
+		sr.resetNumExtraCommands();
+		return true; 
+	}
 	
 	/*---INTERACTIONS---*/
 	
